@@ -2,7 +2,7 @@
 
 return [
 
-    'title' => 'Düzenle :label',
+    'title' => ':label düzenle',
 
     'breadcrumb' => 'Düzenle',
 
@@ -18,6 +18,10 @@ return [
                 'label' => 'Kaydet',
             ],
 
+        ],
+
+        'tab' => [
+            'label' => 'Düzenle',
         ],
 
     ],

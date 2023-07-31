@@ -7,7 +7,9 @@ use Filament\Facades\Filament;
 use Filament\Forms;
 use Filament\Http\Livewire\Concerns\CanNotify;
 use Filament\Navigation\NavigationItem;
+use Filament\Support\Exceptions\Halt;
 use Filament\Tables\Contracts\RendersFormComponentActionModal;
+use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
@@ -25,6 +27,8 @@ class Page extends Component implements Forms\Contracts\HasForms, RendersFormCom
 
     protected static ?string $navigationIcon = null;
 
+    protected static ?string $activeNavigationIcon = null;
+
     protected static ?string $navigationLabel = null;
 
     protected static ?int $navigationSort = null;
@@ -35,9 +39,15 @@ class Page extends Component implements Forms\Contracts\HasForms, RendersFormCom
 
     protected static ?string $title = null;
 
+    protected ?string $heading = null;
+
+    protected ?string $subheading = null;
+
     protected static string $view;
 
     protected static string | array $middlewares = [];
+
+    protected static string | array $withoutRouteMiddleware = [];
 
     public static ?Closure $reportValidationErrorUsing = null;
 
@@ -55,13 +65,13 @@ class Page extends Component implements Forms\Contracts\HasForms, RendersFormCom
     public static function getNavigationItems(): array
     {
         return [
-            NavigationItem::make()
+            NavigationItem::make(static::getNavigationLabel())
                 ->group(static::getNavigationGroup())
                 ->icon(static::getNavigationIcon())
+                ->activeIcon(static::getActiveNavigationIcon())
                 ->isActiveWhen(fn (): bool => request()->routeIs(static::getRouteName()))
-                ->label(static::getNavigationLabel())
                 ->sort(static::getNavigationSort())
-                ->badge(static::getNavigationBadge())
+                ->badge(static::getNavigationBadge(), color: static::getNavigationBadgeColor())
                 ->url(static::getNavigationUrl()),
         ];
     }
@@ -80,6 +90,7 @@ class Page extends Component implements Forms\Contracts\HasForms, RendersFormCom
 
             Route::get($slug, static::class)
                 ->middleware(static::getMiddlewares())
+                ->withoutMiddleware(static::getWithoutRouteMiddleware())
                 ->name($slug);
         };
     }
@@ -89,6 +100,11 @@ class Page extends Component implements Forms\Contracts\HasForms, RendersFormCom
         return static::$middlewares;
     }
 
+    public static function getWithoutRouteMiddleware(): string | array
+    {
+        return static::$withoutRouteMiddleware;
+    }
+
     public static function getSlug(): string
     {
         return static::$slug ?? Str::of(static::$title ?? class_basename(static::class))
@@ -96,9 +112,9 @@ class Page extends Component implements Forms\Contracts\HasForms, RendersFormCom
             ->slug();
     }
 
-    public static function getUrl(array $parameters = [], bool $absolute = true): string
+    public static function getUrl(array $parameters = [], bool $isAbsolute = true): string
     {
-        return route(static::getRouteName(), $parameters, $absolute);
+        return route(static::getRouteName(), $parameters, $isAbsolute);
     }
 
     public function render(): View
@@ -122,6 +138,11 @@ class Page extends Component implements Forms\Contracts\HasForms, RendersFormCom
         return static::$navigationIcon ?? 'heroicon-o-document-text';
     }
 
+    protected static function getActiveNavigationIcon(): string
+    {
+        return static::$activeNavigationIcon ?? static::getNavigationIcon();
+    }
+
     protected static function getNavigationLabel(): string
     {
         return static::$navigationLabel ?? static::$title ?? Str::of(class_basename(static::class))
@@ -131,6 +152,11 @@ class Page extends Component implements Forms\Contracts\HasForms, RendersFormCom
     }
 
     protected static function getNavigationBadge(): ?string
+    {
+        return null;
+    }
+
+    protected static function getNavigationBadgeColor(): ?string
     {
         return null;
     }
@@ -165,17 +191,47 @@ class Page extends Component implements Forms\Contracts\HasForms, RendersFormCom
         return [];
     }
 
+    protected function getVisibleHeaderWidgets(): array
+    {
+        return $this->filterVisibleWidgets($this->getHeaderWidgets());
+    }
+
+    protected function getHeaderWidgetsColumns(): int | string | array
+    {
+        return 2;
+    }
+
     protected function getFooterWidgets(): array
     {
         return [];
     }
 
-    protected function getHeading(): string
+    protected function getVisibleFooterWidgets(): array
     {
-        return $this->getTitle();
+        return $this->filterVisibleWidgets($this->getFooterWidgets());
     }
 
-    protected function getTitle(): string
+    protected function filterVisibleWidgets(array $widgets): array
+    {
+        return array_filter($widgets, fn (string $widget): bool => $widget::canView());
+    }
+
+    protected function getFooterWidgetsColumns(): int | string | array
+    {
+        return 2;
+    }
+
+    protected function getHeading(): string | Htmlable
+    {
+        return $this->heading ?? $this->getTitle();
+    }
+
+    protected function getSubheading(): string | Htmlable | null
+    {
+        return $this->subheading;
+    }
+
+    protected function getTitle(): string | Htmlable
     {
         return static::$title ?? (string) Str::of(class_basename(static::class))
             ->kebab()
@@ -214,5 +270,10 @@ class Page extends Component implements Forms\Contracts\HasForms, RendersFormCom
         }
 
         (static::$reportValidationErrorUsing)($exception);
+    }
+
+    protected function halt(): void
+    {
+        throw new Halt();
     }
 }

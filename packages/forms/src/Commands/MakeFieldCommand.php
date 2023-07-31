@@ -2,15 +2,17 @@
 
 namespace Filament\Forms\Commands;
 
+use Filament\Support\Commands\Concerns\CanManipulateFiles;
+use Filament\Support\Commands\Concerns\CanValidateInput;
 use Illuminate\Console\Command;
 use Illuminate\Support\Str;
 
 class MakeFieldCommand extends Command
 {
-    use Concerns\CanManipulateFiles;
-    use Concerns\CanValidateInput;
+    use CanManipulateFiles;
+    use CanValidateInput;
 
-    protected $description = 'Creates a form field class and view.';
+    protected $description = 'Create a new form field class and view';
 
     protected $signature = 'make:form-field {name?} {--F|force}';
 

@@ -13,6 +13,10 @@ trait BelongsToModel
 
     protected ?Closure $saveRelationshipsUsing = null;
 
+    protected ?Closure $saveRelationshipsBeforeChildrenUsing = null;
+
+    protected bool | Closure $shouldSaveRelationshipsWhenHidden = false;
+
     public function model(Model | string | Closure | null $model = null): static
     {
         $this->model = $model;
@@ -28,10 +32,37 @@ trait BelongsToModel
             return;
         }
 
+        if (! ($this->getRecord()?->exists)) {
+            return;
+        }
+
+        if ((! $this->shouldSaveRelationshipsWhenHidden()) && $this->isHidden()) {
+            return;
+        }
+
         $this->evaluate($callback);
     }
 
-    public function loadStateFromRelationships(): void
+    public function saveRelationshipsBeforeChildren(): void
+    {
+        $callback = $this->saveRelationshipsBeforeChildrenUsing;
+
+        if (! $callback) {
+            return;
+        }
+
+        if (! ($this->getRecord()?->exists)) {
+            return;
+        }
+
+        if ((! $this->shouldSaveRelationshipsWhenHidden()) && $this->isHidden()) {
+            return;
+        }
+
+        $this->evaluate($callback);
+    }
+
+    public function loadStateFromRelationships(bool $andHydrate = false): void
     {
         $callback = $this->loadStateFromRelationshipsUsing;
 
@@ -39,7 +70,21 @@ trait BelongsToModel
             return;
         }
 
+        if (! $this->getRecord()?->exists) {
+            return;
+        }
+
         $this->evaluate($callback);
+
+        if ($andHydrate) {
+            $this->callAfterStateHydrated();
+
+            foreach ($this->getChildComponentContainers() as $container) {
+                $container->callAfterStateHydrated();
+            }
+
+            $this->fillStateWithNull();
+        }
     }
 
     public function saveRelationshipsUsing(?Closure $callback): static
@@ -47,6 +92,25 @@ trait BelongsToModel
         $this->saveRelationshipsUsing = $callback;
 
         return $this;
+    }
+
+    public function saveRelationshipsBeforeChildrenUsing(?Closure $callback): static
+    {
+        $this->saveRelationshipsBeforeChildrenUsing = $callback;
+
+        return $this;
+    }
+
+    public function saveRelationshipsWhenHidden(bool | Closure $condition = true): static
+    {
+        $this->shouldSaveRelationshipsWhenHidden = $condition;
+
+        return $this;
+    }
+
+    public function shouldSaveRelationshipsWhenHidden(): bool
+    {
+        return (bool) $this->evaluate($this->shouldSaveRelationshipsWhenHidden);
     }
 
     public function loadStateFromRelationshipsUsing(?Closure $callback): static

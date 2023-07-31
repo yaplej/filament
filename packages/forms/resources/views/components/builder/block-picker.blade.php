@@ -2,30 +2,25 @@
     'blocks',
     'createAfterItem' => null,
     'statePath',
+    'trigger',
 ])
 
-<div
-    x-show="isCreateButtonDropdownOpen"
-    x-on:click.away="isCreateButtonDropdownOpen = false"
-    x-transition
-    x-cloak
-    {{ $attributes->class([
-        'absolute z-20 mt-10 shadow-xl ring-1 ring-gray-900/10 overflow-hidden rounded-xl w-52 filament-forms-builder-component-block-picker',
-        'dark:ring-white/20' => config('forms.dark_mode'),
-    ]) }}
+<x-forms::dropdown
+    {{ $attributes->class(['filament-forms-builder-component-block-picker']) }}
 >
-    <ul @class([
-        'py-1 space-y-1 bg-white shadow rounded-xl',
-        'dark:bg-gray-700 dark:divide-gray-600' => config('forms.dark_mode'),
-    ])>
+    <x-slot name="trigger">
+        {{ $trigger }}
+    </x-slot>
+
+    <x-forms::dropdown.list>
         @foreach ($blocks as $block)
-            <x-forms::dropdown.item
+            <x-forms::dropdown.list.item
                 :wire:click="'dispatchFormEvent(\'builder::createItem\', \'' . $statePath . '\', \'' . $block->getName() . '\'' . ($createAfterItem ? ', \'' . $createAfterItem . '\'' : '') . ')'"
-                x-on:click="isCreateButtonDropdownOpen = false"
                 :icon="$block->getIcon()"
+                x-on:click="close"
             >
                 {{ $block->getLabel() }}
-            </x-forms::dropdown.item>
+            </x-forms::dropdown.list.item>
         @endforeach
-    </ul>
-</div>
+    </x-forms::dropdown.list>
+</x-forms::dropdown>

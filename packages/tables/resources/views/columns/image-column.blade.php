@@ -1,7 +1,16 @@
-<div {{ $attributes->merge($getExtraAttributes())->class(['px-4 py-3 filament-tables-image-column']) }}>
+<div
+    {{
+        $attributes
+            ->merge($getExtraAttributes())
+            ->class([
+                'filament-tables-image-column',
+                'px-4 py-3' => ! $isInline(),
+            ])
+    }}
+>
     @php
         $height = $getHeight();
-        $width = $getWidth() ?? ($isRounded() ? $height : null);
+        $width = $getWidth() ?? ($isCircular() || $isSquare() ? $height : null);
     @endphp
 
     <div
@@ -9,7 +18,10 @@
             {!! $height !== null ? "height: {$height};" : null !!}
             {!! $width !== null ? "width: {$width};" : null !!}
         "
-        @class(['rounded-full overflow-hidden' => $isRounded()])
+        @class([
+            'overflow-hidden' => $isCircular() || $isSquare(),
+            'rounded-full' => $isCircular(),
+        ])
     >
         @if ($path = $getImagePath())
             <img
@@ -18,9 +30,12 @@
                     {!! $height !== null ? "height: {$height};" : null !!}
                     {!! $width !== null ? "width: {$width};" : null !!}
                 "
-                @class(['object-cover object-center' => $isRounded()])
-                {{ $getExtraImgAttributeBag() }}
-            >
-       @endif
+                {{
+                    $getExtraImgAttributeBag()->class([
+                        'object-cover object-center' => $isCircular() || $isSquare(),
+                    ])
+                }}
+            />
+        @endif
     </div>
 </div>

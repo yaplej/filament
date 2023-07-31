@@ -5,9 +5,10 @@ namespace Filament\Resources;
 use Closure;
 use Filament\Facades\Filament;
 use Filament\GlobalSearch\GlobalSearchResult;
-use function Filament\locale_has_pluralization;
 use Filament\Navigation\NavigationItem;
 use function Filament\Support\get_model_label;
+use function Filament\Support\locale_has_pluralization;
+use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Database\Connection;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -16,9 +17,14 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
+use Illuminate\Support\Traits\Macroable;
 
 class Resource
 {
+    use Macroable {
+        __call as dynamicMacroCall;
+    }
+
     protected static ?string $breadcrumb = null;
 
     protected static bool $isGloballySearchable = true;
@@ -35,6 +41,8 @@ class Resource
     protected static ?string $navigationGroup = null;
 
     protected static ?string $navigationIcon = null;
+
+    protected static ?string $activeNavigationIcon = null;
 
     protected static ?string $navigationLabel = null;
 
@@ -56,6 +64,14 @@ class Resource
     protected static ?string $slug = null;
 
     protected static string | array $middlewares = [];
+
+    protected static string | array $withoutRouteMiddleware = [];
+
+    protected static int $globalSearchResultsLimit = 50;
+
+    protected static bool $shouldAuthorizeWithGate = false;
+
+    protected static bool $shouldIgnorePolicies = false;
 
     public static function form(Form $form): Form
     {
@@ -80,12 +96,12 @@ class Resource
         $routeBaseName = static::getRouteBaseName();
 
         return [
-            NavigationItem::make()
+            NavigationItem::make(static::getNavigationLabel())
                 ->group(static::getNavigationGroup())
                 ->icon(static::getNavigationIcon())
+                ->activeIcon(static::getActiveNavigationIcon())
                 ->isActiveWhen(fn () => request()->routeIs("{$routeBaseName}.*"))
-                ->label(static::getNavigationLabel())
-                ->badge(static::getNavigationBadge())
+                ->badge(static::getNavigationBadge(), color: static::getNavigationBadgeColor())
                 ->sort(static::getNavigationSort())
                 ->url(static::getNavigationUrl()),
         ];
@@ -105,13 +121,47 @@ class Resource
 
     public static function can(string $action, ?Model $record = null): bool
     {
-        $policy = Gate::getPolicyFor($model = static::getModel());
+        $user = Filament::auth()->user();
+        $model = static::getModel();
 
-        if ($policy === null || (! method_exists($policy, $action))) {
+        if (static::shouldAuthorizeWithGate()) {
+            return Gate::forUser($user)->check($action, $record ?? $model);
+        }
+
+        if (static::shouldIgnorePolicies()) {
             return true;
         }
 
-        return Gate::forUser(Filament::auth()->user())->check($action, $record ?? $model);
+        $policy = Gate::getPolicyFor($model);
+        if ($policy === null) {
+            return true;
+        }
+
+        if (! method_exists($policy, $action)) {
+            return true;
+        }
+
+        return Gate::forUser($user)->check($action, $record ?? $model);
+    }
+
+    public static function authorizeWithGate(bool $condition = true): void
+    {
+        static::$shouldAuthorizeWithGate = $condition;
+    }
+
+    public static function ignorePolicies(bool $condition = true): void
+    {
+        static::$shouldIgnorePolicies = $condition;
+    }
+
+    public static function shouldAuthorizeWithGate(): bool
+    {
+        return static::$shouldAuthorizeWithGate;
+    }
+
+    public static function shouldIgnorePolicies(): bool
+    {
+        return static::$shouldIgnorePolicies;
     }
 
     public static function canViewAny(): bool
@@ -147,6 +197,11 @@ class Resource
     public static function canForceDeleteAny(): bool
     {
         return static::can('forceDeleteAny');
+    }
+
+    public static function canReorder(): bool
+    {
+        return static::can('reorder');
     }
 
     public static function canReplicate(Model $record): bool
@@ -195,6 +250,11 @@ class Resource
         return [$titleAttribute];
     }
 
+    public static function getGlobalSearchResultActions(Model $record): array
+    {
+        return [];
+    }
+
     public static function getGlobalSearchResultDetails(Model $record): array
     {
         return [];
@@ -218,8 +278,15 @@ class Resource
         return null;
     }
 
+    public static function getGlobalSearchResultsLimit(): int
+    {
+        return static::$globalSearchResultsLimit;
+    }
+
     public static function getGlobalSearchResults(string $searchQuery): Collection
     {
+        $searchQuery = strtolower($searchQuery);
+
         $query = static::getGlobalSearchEloquentQuery();
 
         foreach (explode(' ', $searchQuery) as $searchQueryWord) {
@@ -233,7 +300,7 @@ class Resource
         }
 
         return $query
-            ->limit(50)
+            ->limit(static::getGlobalSearchResultsLimit())
             ->get()
             ->map(function (Model $record): ?GlobalSearchResult {
                 $url = static::getGlobalSearchResultUrl($record);
@@ -246,6 +313,7 @@ class Resource
                     title: static::getGlobalSearchResultTitle($record),
                     url: $url,
                     details: static::getGlobalSearchResultDetails($record),
+                    actions: static::getGlobalSearchResultActions($record),
                 );
             })
             ->filter();
@@ -302,7 +370,7 @@ class Resource
         return static::$recordTitleAttribute;
     }
 
-    public static function getRecordTitle(?Model $record): ?string
+    public static function getRecordTitle(?Model $record): string | Htmlable | null
     {
         return $record?->getAttribute(static::getRecordTitleAttribute()) ?? static::getModelLabel();
     }
@@ -337,6 +405,7 @@ class Resource
             Route::name("{$slug}.")
                 ->prefix($slug)
                 ->middleware(static::getMiddlewares())
+                ->withoutMiddleware(static::getWithoutRouteMiddleware())
                 ->group(function () {
                     foreach (static::getPages() as $name => $page) {
                         Route::get($page['route'], $page['class'])->name($name);
@@ -350,30 +419,30 @@ class Resource
         return static::$middlewares;
     }
 
+    public static function getWithoutRouteMiddleware(): string | array
+    {
+        return static::$withoutRouteMiddleware;
+    }
+
     public static function getSlug(): string
     {
         if (filled(static::$slug)) {
             return static::$slug;
         }
 
-        $slug = Str::of(static::getModel())
+        return Str::of(static::getModel())
             ->afterLast('\\Models\\')
+            ->plural()
             ->explode('\\')
             ->map(fn (string $string) => Str::of($string)->kebab()->slug())
             ->implode('/');
-
-        if (locale_has_pluralization()) {
-            $slug = Str::plural($slug);
-        }
-
-        return $slug;
     }
 
-    public static function getUrl($name = 'index', $params = []): string
+    public static function getUrl($name = 'index', $params = [], $isAbsolute = true): string
     {
         $routeBaseName = static::getRouteBaseName();
 
-        return route("{$routeBaseName}.{$name}", $params);
+        return route("{$routeBaseName}.{$name}", $params, $isAbsolute);
     }
 
     public static function hasPage($page): bool
@@ -396,21 +465,37 @@ class Resource
             default => 'like',
         };
 
+        $model = $query->getModel();
+
         foreach ($searchAttributes as $searchAttribute) {
             $whereClause = $isFirst ? 'where' : 'orWhere';
 
             $query->when(
-                Str::of($searchAttribute)->contains('.'),
-                fn ($query) => $query->{"{$whereClause}Relation"}(
-                    (string) Str::of($searchAttribute)->beforeLast('.'),
-                    (string) Str::of($searchAttribute)->afterLast('.'),
-                    $searchOperator,
-                    "%{$searchQuery}%",
-                ),
-                fn ($query) => $query->{$whereClause}(
-                    $searchAttribute,
-                    $searchOperator,
-                    "%{$searchQuery}%",
+                method_exists($model, 'isTranslatableAttribute') && $model->isTranslatableAttribute($searchAttribute),
+                function (Builder $query) use ($databaseConnection, $searchAttribute, $searchOperator, $searchQuery, $whereClause): Builder {
+                    $searchColumn = match ($databaseConnection->getDriverName()) {
+                        'pgsql' => "{$searchAttribute}::text",
+                        default => "json_extract({$searchAttribute}, '$')",
+                    };
+
+                    return $query->{"{$whereClause}Raw"}(
+                        "lower({$searchColumn}) {$searchOperator} ?",
+                        "%{$searchQuery}%",
+                    );
+                },
+                fn (Builder $query): Builder => $query->when(
+                    Str::of($searchAttribute)->contains('.'),
+                    fn ($query) => $query->{"{$whereClause}Relation"}(
+                        (string) Str::of($searchAttribute)->beforeLast('.'),
+                        (string) Str::of($searchAttribute)->afterLast('.'),
+                        $searchOperator,
+                        "%{$searchQuery}%",
+                    ),
+                    fn ($query) => $query->{$whereClause}(
+                        $searchAttribute,
+                        $searchOperator,
+                        "%{$searchQuery}%",
+                    ),
                 ),
             );
 
@@ -445,12 +530,22 @@ class Resource
         static::$navigationIcon = $icon;
     }
 
+    protected static function getActiveNavigationIcon(): string
+    {
+        return static::$activeNavigationIcon ?? static::getNavigationIcon();
+    }
+
     protected static function getNavigationLabel(): string
     {
         return static::$navigationLabel ?? Str::headline(static::getPluralModelLabel());
     }
 
     protected static function getNavigationBadge(): ?string
+    {
+        return null;
+    }
+
+    protected static function getNavigationBadgeColor(): ?string
     {
         return null;
     }

@@ -2,16 +2,16 @@
 
 namespace Filament\Tables\Concerns;
 
-use function Filament\locale_has_pluralization;
 use function Filament\Support\get_model_label;
+use function Filament\Support\locale_has_pluralization;
 use Filament\Tables\Contracts\HasRelationshipTable;
 use Illuminate\Contracts\Pagination\Paginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
-
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Str;
+use function Livewire\invade;
 
 trait HasRecords
 {
@@ -40,6 +40,15 @@ trait HasRecords
         return $query;
     }
 
+    protected function hydratePivotRelationForTableRecords(Collection | Paginator $records): Collection | Paginator
+    {
+        if ($this instanceof HasRelationshipTable && $this->getRelationship() instanceof BelongsToMany && ! $this->allowsDuplicates()) {
+            invade($this->getRelationship())->hydratePivotRelation($records->all());
+        }
+
+        return $records;
+    }
+
     public function getTableRecords(): Collection | Paginator
     {
         if ($this->records) {
@@ -50,15 +59,22 @@ trait HasRecords
 
         $this->applySortingToTableQuery($query);
 
-        $this->records = $this->isTablePaginationEnabled() ?
-            $this->paginateTableQuery($query) :
-            $query->get();
+        if (
+            (! $this->isTablePaginationEnabled()) ||
+            ($this->isTableReordering() && (! $this->isTablePaginationEnabledWhileReordering()))
+        ) {
+            return $this->records = $this->hydratePivotRelationForTableRecords($query->get());
+        }
 
-        return $this->records;
+        return $this->records = $this->hydratePivotRelationForTableRecords($this->paginateTableQuery($query));
     }
 
     protected function resolveTableRecord(?string $key): ?Model
     {
+        if ($key === null) {
+            return null;
+        }
+
         if (! ($this instanceof HasRelationshipTable && $this->getRelationship() instanceof BelongsToMany)) {
             return $this->getTableQuery()->find($key);
         }
@@ -81,6 +97,11 @@ trait HasRecords
     public function getTableModel(): string
     {
         return $this->getTableQuery()->getModel()::class;
+    }
+
+    public function getTableRecord(?string $key): ?Model
+    {
+        return $this->resolveTableRecord($key);
     }
 
     public function getTableRecordKey(Model $record): string

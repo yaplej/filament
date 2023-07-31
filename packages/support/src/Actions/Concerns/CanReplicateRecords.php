@@ -16,6 +16,8 @@ trait CanReplicateRecords
 
     protected array | Closure | null $excludedAttributes = null;
 
+    protected ?Closure $mutateRecordDataUsing = null;
+
     public static function getDefaultName(): ?string
     {
         return 'replicate';
@@ -31,7 +33,7 @@ trait CanReplicateRecords
 
         $this->modalButton(__('filament-support::actions/replicate.single.modal.actions.replicate.label'));
 
-        $this->successNotificationMessage(__('filament-support::actions/replicate.single.messages.replicated'));
+        $this->successNotificationTitle(__('filament-support::actions/replicate.single.messages.replicated'));
 
         $this->mountUsing(function (Model $record, ?ComponentContainer $form = null): void {
             if (! $this->hasForm()) {
@@ -42,7 +44,13 @@ trait CanReplicateRecords
                 return;
             }
 
-            $form->fill($record->toArray());
+            $data = $record->attributesToArray();
+
+            if ($this->mutateRecordDataUsing) {
+                $data = $this->evaluate($this->mutateRecordDataUsing, ['data' => $data]);
+            }
+
+            $form->fill($data);
         });
 
         $this->action(function () {
@@ -102,5 +110,12 @@ trait CanReplicateRecords
     public function getExcludedAttributes(): ?array
     {
         return $this->evaluate($this->excludedAttributes);
+    }
+
+    public function mutateRecordDataUsing(?Closure $callback): static
+    {
+        $this->mutateRecordDataUsing = $callback;
+
+        return $this;
     }
 }

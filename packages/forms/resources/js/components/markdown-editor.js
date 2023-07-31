@@ -5,10 +5,7 @@ import { marked } from 'marked'
 import { highlight } from 'mdhl'
 
 export default (Alpine) => {
-    Alpine.data('markdownEditorFormComponent', ({
-        state,
-        tab,
-    }) => {
+    Alpine.data('markdownEditorFormComponent', ({ state, tab }) => {
         return {
             attachment: null,
 
@@ -27,16 +24,23 @@ export default (Alpine) => {
                     })
                 }
 
-                this.$watch('state', () => {
+                this.$watch('state', (value) => {
+                    if (value === null) {
+                        this.state = ''
+                    }
+
                     this.render()
                 })
             },
 
             render: function () {
-                if (this.$refs.textarea.scrollHeight > 0) {
+                if ((this.$refs.textarea?.scrollHeight ?? 0) > 0) {
                     this.$refs.overlay.style.height = '150px'
-                    this.$refs.overlay.style.height = this.$refs.textarea.scrollHeight + 'px'
+                    this.$refs.overlay.style.height =
+                        this.$refs.textarea.scrollHeight + 'px'
                 }
+
+                this.state = this.state.replace('\r\n', '\n')
 
                 this.overlay = null
                 this.overlay = highlight(this.state)
@@ -45,42 +49,86 @@ export default (Alpine) => {
                 this.preview = DOMPurify.sanitize(marked(this.state))
             },
 
-            checkForAutoInsertion($event) {
-                const lines = this.$refs.textarea.value.split("\n")
+            checkForAutoInsertion: function () {
+                const lines = this.$refs.textarea.value.split('\n')
 
-                const currentLine = this.$refs.textarea.value.substring(
-                    0, this.$refs.textarea.value.selectionStart
-                ).split("\n").length
+                const linesBeforeSelection =
+                    this.$refs.textarea.value.substring(
+                        0,
+                        this.$refs.textarea.selectionStart,
+                    )
+
+                const currentLine = linesBeforeSelection.split('\n').length
                 const previousLine = lines[currentLine - 2]
 
-                if (! previousLine.match(/^(\*\s|-\s)|^(\d)+\./)) {
-                    return;
+                if (!previousLine.match(/^(\*\s|-\s)|^(\d)+\./)) {
+                    return
                 }
 
                 if (previousLine.match(/^(\*\s)/)) {
                     if (previousLine.trim().length > 1) {
                         lines[currentLine - 1] = '* '
+
+                        this.$nextTick(() => {
+                            this.$refs.textarea.selectionStart =
+                                this.$refs.textarea.selectionEnd =
+                                    linesBeforeSelection.length + 2
+                        })
                     } else {
                         delete lines[currentLine - 2]
+
+                        this.$nextTick(() => {
+                            this.$refs.textarea.selectionStart =
+                                this.$refs.textarea.selectionEnd =
+                                    linesBeforeSelection.length - 2
+                        })
                     }
                 } else if (previousLine.match(/^(-\s)/)) {
                     if (previousLine.trim().length > 1) {
                         lines[currentLine - 1] = '- '
+
+                        this.$nextTick(() => {
+                            this.$refs.textarea.selectionStart =
+                                this.$refs.textarea.selectionEnd =
+                                    linesBeforeSelection.length + 2
+                        })
                     } else {
                         delete lines[currentLine - 2]
+
+                        this.$nextTick(() => {
+                            this.$refs.textarea.selectionStart =
+                                this.$refs.textarea.selectionEnd =
+                                    linesBeforeSelection.length - 2
+                        })
                     }
                 } else {
                     const matches = previousLine.match(/^(\d)+/)
                     const number = matches[0]
 
-                    if (previousLine.trim().length > (number.length + 2)) {
+                    if (previousLine.trim().length > number.length + 2) {
                         lines[currentLine - 1] = `${parseInt(number) + 1}. `
+
+                        this.$nextTick(() => {
+                            this.$refs.textarea.selectionStart =
+                                this.$refs.textarea.selectionEnd =
+                                    linesBeforeSelection.length +
+                                    number.length +
+                                    2
+                        })
                     } else {
                         delete lines[currentLine - 2]
+
+                        this.$nextTick(() => {
+                            this.$refs.textarea.selectionStart =
+                                this.$refs.textarea.selectionEnd =
+                                    linesBeforeSelection.length -
+                                    number.length -
+                                    2
+                        })
                     }
                 }
 
-                this.state = lines.join("\n")
+                this.state = lines.join('\n')
 
                 this.render()
             },

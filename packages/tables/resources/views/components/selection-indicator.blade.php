@@ -1,30 +1,58 @@
 @props([
-    'allRecordsCount',
+    'allSelectableRecordsCount',
     'colspan',
+    'deselectAllRecordsAction' => 'deselectAllRecords',
+    'end' => null,
+    'selectAllRecordsAction' => 'selectAllRecords',
     'selectedRecordsCount',
+    'selectedRecordsPropertyName' => 'selectedRecords',
 ])
 
-<tr x-cloak {{ $attributes->class(['bg-primary-500/10 filament-tables-selection-indicator']) }}>
-    <td class="px-4 py-2 whitespace-nowrap text-sm" colspan="{{ $colspan }}">
-        <div>
-            <x-filament-support::loading-indicator
-                x-show="isLoading"
-                class="inline-block animate-spin w-4 h-4 mr-3 text-primary-600"
-            />
+<div
+    wire:key="{{ $this->id }}.table.selection.indicator"
+    x-cloak
+    {{ $attributes->class(['filament-tables-selection-indicator flex flex-wrap items-center gap-1 whitespace-nowrap bg-primary-500/10 px-4 py-2 text-sm']) }}
+>
+    {{ $slot }}
 
-            <span @class(['dark:text-white' => config('tables.dark_mode')]) x-text="pluralize(@js(__('tables::table.selection_indicator.selected_count')), selectedRecords.length, { count: selectedRecords.length })"></span>
+    <div class="flex-1">
+        <x-filament-support::loading-indicator
+            x-show="isLoading"
+            class="mr-3 inline-block h-4 w-4 text-primary-500 rtl:ml-3 rtl:mr-0"
+        />
 
-            <span x-show="{{ $allRecordsCount }} !== selectedRecords.length">
-                <button x-on:click="selectAllRecords" class="text-primary-600 text-sm font-medium">
-                    {{ __('tables::table.selection_indicator.buttons.select_all.label', ['count' => $allRecordsCount]) }}.
-                </button>
-            </span>
+        <span
+            @class(['dark:text-white' => config('tables.dark_mode')])
+            x-text="
+                window.pluralize(@js(__('tables::table.selection_indicator.selected_count')), {{ $selectedRecordsPropertyName }}.length, {
+                    count: {{ $selectedRecordsPropertyName }}.length,
+                })
+            "
+        ></span>
 
-            <span>
-                <button x-on:click="deselectAllRecords" class="text-primary-600 text-sm font-medium">
-                    {{ __('tables::table.selection_indicator.buttons.deselect_all.label') }}.
-                </button>
-            </span>
-        </div>
-    </td>
-</tr>
+        <span
+            id="{{ $this->id }}.table.selection.indicator.record-count.{{ $allSelectableRecordsCount }}"
+            x-show="{{ $allSelectableRecordsCount }} !== {{ $selectedRecordsPropertyName }}.length"
+        >
+            <button
+                x-on:click="{{ $selectAllRecordsAction }}"
+                class="text-sm font-medium text-primary-600"
+                type="button"
+            >
+                {{ trans_choice('tables::table.selection_indicator.buttons.select_all.label', $allSelectableRecordsCount) }}.
+            </button>
+        </span>
+
+        <span>
+            <button
+                x-on:click="{{ $deselectAllRecordsAction }}"
+                class="text-sm font-medium text-primary-600"
+                type="button"
+            >
+                {{ __('tables::table.selection_indicator.buttons.deselect_all.label') }}.
+            </button>
+        </span>
+    </div>
+
+    {{ $end }}
+</div>

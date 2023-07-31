@@ -31,6 +31,12 @@ composer require filament/forms
 composer require filament/tables
 ```
 
+### Notifications • [Documentation](https://filamentphp.com/docs/notifications)
+
+```bash
+composer require filament/notifications
+```
+
 ### Spatie Media Library Plugin • [Documentation](https://filamentphp.com/docs/spatie-laravel-media-library-plugin)
 
 ```bash
@@ -66,31 +72,47 @@ If you want to contribute to Filament packages, you may want to test it in a rea
 
 Install the packages in your app's `composer.json`:
 
-```json
+```jsonc
 {
-    ...
+    // ...
     "require": {
-        "filament/filament": "dev-fix/error-message as 2.x-dev",
-        "filament/forms": "dev-fix/error-message as 2.x-dev",
-        "filament/support": "dev-fix/error-message as 2.x-dev",
-        "filament/tables": "dev-fix/error-message as 2.x-dev"
+        "filament/filament": "*",
     },
+    "minimum-stability": "dev",
     "repositories": [
         {
             "type": "path",
             "url": "filament/packages/*"
         }
     ],
-    ...
+    // ...
 }
 ```
 
 Now, run `composer update`.
 
+### Checking for missing translations
+
+Set up a Laravel app, and install the [admin panel](https://filamentphp.com/docs/admin/installation).
+
+Now, if you want to check for missing Spanish translations, run:
+
+```bash
+php artisan filament:check-translations es
+```
+
+This will let you know which translations are missing for this locale. You can make a PR with the changes to this repository.
+
+If you've published the translations into your app and you'd like to check those instead, try:
+
+```bash
+php artisan filament:check-translations es --source=app
+```
+
 ## Need Help?
 
-🐞 If you spot a bug, please [submit a detailed issue](https://github.com/filamentphp/filament/issues/new), and wait for assistance.
+🐞 If you spot a bug, please [submit a detailed issue](https://github.com/filamentphp/filament/issues/new?assignees=&labels=bug%2Cunconfirmed&template=bug_report.yml), and wait for assistance.
 
-🤔 If you have a question or feature request, please [start a new discussion](https://github.com/filamentphp/filament/discussions/new). We also have a [Discord community](https://discord.gg/cpqnMTHZja). For quick help, ask questions in the appropriate package help channel.
+🤔 If you have a question or feature request, please [start a new discussion](https://github.com/filamentphp/filament/discussions/new). We also have a [Discord community](https://filamentphp.com/discord). For quick help, ask questions in the appropriate channel.
 
 🔐 If you discover a vulnerability, please review our [security policy](https://github.com/filamentphp/filament/blob/2.x/SECURITY.md).

@@ -2,7 +2,27 @@
 
 return [
 
+    'columns' => [
+
+        'tags' => [
+            'more' => 'i :count więcej',
+        ],
+
+        'messages' => [
+            'copied' => 'Skopiowano',
+        ],
+
+    ],
+
     'fields' => [
+
+        'bulk_select_page' => [
+            'label' => 'Zaznacz/odznacz wszystkie pozycje dla operacji zbiorczych.',
+        ],
+
+        'bulk_select_record' => [
+            'label' => 'Zaznacz/odznacz pozycję :key dla operacji zbiorczych.',
+        ],
 
         'search_query' => [
             'label' => 'Szukaj',
@@ -20,7 +40,13 @@ return [
         'fields' => [
 
             'records_per_page' => [
+
                 'label' => 'na stronę',
+
+                'options' => [
+                    'all' => 'Wszystkie',
+                ],
+
             ],
 
         ],
@@ -45,6 +71,14 @@ return [
 
     'buttons' => [
 
+        'disable_reordering' => [
+            'label' => 'Zakończ zmienianie kolejności',
+        ],
+
+        'enable_reordering' => [
+            'label' => 'Zmień kolejność',
+        ],
+
         'filter' => [
             'label' => 'Filtr',
         ],
@@ -60,22 +94,39 @@ return [
     ],
 
     'empty' => [
-        'heading' => 'Nie znaleziono wyników',
+
+        'heading' => 'Nie znaleziono rekordów',
+
+        'buttons' => [
+
+            'reset_column_searches' => [
+                'label' => 'Wyczyść wyszukiwanie w kolumnach',
+            ],
+
+        ],
+
     ],
 
     'filters' => [
 
         'buttons' => [
 
+            'remove' => [
+                'label' => 'Usuń filtr',
+            ],
+
+            'remove_all' => [
+                'label' => 'Usuń wszystkie filtry',
+                'tooltip' => 'Usuń wszystkie filtry',
+            ],
+
             'reset' => [
                 'label' => 'Zresetuj filtry',
             ],
 
-            'close' => [
-                'label' => 'Zamknij',
-            ],
-
         ],
+
+        'indicator' => 'Aktywne filtry',
 
         'multi_select' => [
             'placeholder' => 'Wszystkie',
@@ -99,6 +150,8 @@ return [
 
     ],
 
+    'reorder_indicator' => 'Zmień kolejność przeciągając.',
+
     'selection_indicator' => [
 
         'selected_count' => '{1} 1 rekord zaznaczony.|[2,4]:count rekordy zaznaczone.|[5,*]:count rekordów zaznaczonych.',
@@ -111,6 +164,29 @@ return [
 
             'deselect_all' => [
                 'label' => 'Odznacz wszystkie',
+            ],
+
+        ],
+
+    ],
+
+    'sorting' => [
+
+        'fields' => [
+
+            'column' => [
+                'label' => 'Sortuj według',
+            ],
+
+            'direction' => [
+
+                'label' => 'Kierunek sortowania',
+
+                'options' => [
+                    'asc' => 'Rosnąco',
+                    'desc' => 'Malejąco',
+                ],
+
             ],
 
         ],

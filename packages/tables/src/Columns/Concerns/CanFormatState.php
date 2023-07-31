@@ -21,6 +21,8 @@ trait CanFormatState
 
     protected string | Closure | null $suffix = null;
 
+    protected string | Closure | null $placeholder = null;
+
     protected string | Closure | null $timezone = null;
 
     public function date(?string $format = null, ?string $timezone = null): static
@@ -29,7 +31,6 @@ trait CanFormatState
 
         $this->formatStateUsing(static function (Column $column, $state) use ($format, $timezone): ?string {
             /** @var TextColumn $column */
-
             if (blank($state)) {
                 return null;
             }
@@ -55,7 +56,6 @@ trait CanFormatState
     {
         $this->formatStateUsing(static function (Column $column, $state) use ($timezone): ?string {
             /** @var TextColumn $column */
-
             if (blank($state)) {
                 return null;
             }
@@ -90,6 +90,19 @@ trait CanFormatState
         return $this;
     }
 
+    public function words(int $words = 100, string $end = '...'): static
+    {
+        $this->formatStateUsing(static function ($state) use ($words, $end): ?string {
+            if (blank($state)) {
+                return null;
+            }
+
+            return Str::words($state, $words, $end);
+        });
+
+        return $this;
+    }
+
     public function prefix(string | Closure $prefix): static
     {
         $this->prefix = $prefix;
@@ -104,9 +117,16 @@ trait CanFormatState
         return $this;
     }
 
+    public function placeholder(string | Closure | null $placeholder): static
+    {
+        $this->placeholder = $placeholder;
+
+        return $this;
+    }
+
     public function html(): static
     {
-        return $this->formatStateUsing(static fn ($state): HtmlString => Str::of($state)->sanitizeHtml()->toHtmlString());
+        return $this->formatStateUsing(static fn ($state): HtmlString => $state instanceof HtmlString ? $state : Str::of($state)->sanitizeHtml()->toHtmlString());
     }
 
     public function formatStateUsing(?Closure $callback): static
@@ -116,11 +136,15 @@ trait CanFormatState
         return $this;
     }
 
-    public function money(string | Closure $currency = 'usd', bool $shouldConvert = false): static
+    public function money(string | Closure | null $currency = null, bool $shouldConvert = false): static
     {
         $this->formatStateUsing(static function (Column $column, $state) use ($currency, $shouldConvert): ?string {
             if (blank($state)) {
                 return null;
+            }
+
+            if (blank($currency)) {
+                $currency = env('DEFAULT_CURRENCY', 'USD');
             }
 
             return (new Money\Money(
@@ -149,6 +173,10 @@ trait CanFormatState
 
         if ($this->suffix) {
             $state = $state . $this->evaluate($this->suffix);
+        }
+
+        if (blank($state)) {
+            $state = $this->evaluate($this->placeholder);
         }
 
         return $state;

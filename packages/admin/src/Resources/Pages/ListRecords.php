@@ -3,6 +3,7 @@
 namespace Filament\Resources\Pages;
 
 use Closure;
+use Filament\Notifications\Notification;
 use Filament\Pages\Actions\Action;
 use Filament\Pages\Actions\CreateAction;
 use Filament\Resources\Pages\Concerns\UsesResourceForm;
@@ -22,9 +23,10 @@ class ListRecords extends Page implements Tables\Contracts\HasTable
     protected static string $view = 'filament::resources.pages.list-records';
 
     protected $queryString = [
+        'isTableReordering' => ['except' => false],
         'tableFilters',
-        'tableSortColumn',
-        'tableSortDirection',
+        'tableSortColumn' => ['except' => ''],
+        'tableSortDirection' => ['except' => ''],
         'tableSearchQuery' => ['except' => ''],
     ];
 
@@ -131,12 +133,15 @@ class ListRecords extends Page implements Tables\Contracts\HasTable
         $this->callHook('afterBulkDelete');
 
         if (filled($this->getBulkDeletedNotificationMessage())) {
-            $this->notify('success', $this->getBulkDeletedNotificationMessage());
+            Notification::make()
+                ->title($this->getBulkDeletedNotificationMessage())
+                ->success()
+                ->send();
         }
     }
 
     /**
-     * @deprecated Use `->successNotificationMessage()` on the action instead.
+     * @deprecated Use `->successNotificationTitle()` on the action instead.
      */
     protected function getBulkDeletedNotificationMessage(): ?string
     {
@@ -211,15 +216,12 @@ class ListRecords extends Page implements Tables\Contracts\HasTable
         $action
             ->authorize($resource::canCreate())
             ->model($this->getModel())
-            ->modelLabel($this->getModelLabel());
+            ->modelLabel($this->getModelLabel())
+            ->form(fn (): array => $this->getCreateFormSchema());
 
         if ($resource::hasPage('create')) {
             $action->url(fn (): string => $resource::getUrl('create'));
-
-            return;
         }
-
-        $action->form($this->getCreateFormSchema());
     }
 
     protected function configureTableAction(Tables\Actions\Action $action): void
@@ -251,15 +253,12 @@ class ListRecords extends Page implements Tables\Contracts\HasTable
         $resource = static::getResource();
 
         $action
-            ->authorize(fn (Model $record): bool => $resource::canEdit($record));
+            ->authorize(fn (Model $record): bool => $resource::canEdit($record))
+            ->form(fn (): array => $this->getEditFormSchema());
 
         if ($resource::hasPage('edit')) {
             $action->url(fn (Model $record): string => $resource::getUrl('edit', ['record' => $record]));
-
-            return;
         }
-
-        $action->form($this->getEditFormSchema());
     }
 
     protected function configureForceDeleteAction(Tables\Actions\ForceDeleteAction $action): void
@@ -280,9 +279,9 @@ class ListRecords extends Page implements Tables\Contracts\HasTable
             ->authorize(fn (Model $record): bool => static::getResource()::canRestore($record));
     }
 
-    protected function getViewFormSchema(): array
+    protected function getViewFormSchema(bool $isDisabled = true): array
     {
-        return $this->getResourceForm(columns: 2, isDisabled: true)->getSchema();
+        return $this->getResourceForm(columns: 2, isDisabled: $isDisabled)->getSchema();
     }
 
     protected function configureViewAction(Tables\Actions\ViewAction $action): void
@@ -290,15 +289,12 @@ class ListRecords extends Page implements Tables\Contracts\HasTable
         $resource = static::getResource();
 
         $action
-            ->authorize(fn (Model $record): bool => $resource::canView($record));
+            ->authorize(fn (Model $record): bool => $resource::canView($record))
+            ->form(fn (Tables\Actions\ViewAction $action): array => $this->getViewFormSchema($action->isFormDisabled()));
 
         if ($resource::hasPage('view')) {
             $action->url(fn (Model $record): string => $resource::getUrl('view', ['record' => $record]));
-
-            return;
         }
-
-        $action->form($this->getViewFormSchema());
     }
 
     protected function configureTableBulkAction(BulkAction $action): void
@@ -344,14 +340,29 @@ class ListRecords extends Page implements Tables\Contracts\HasTable
         return $this->getResourceTable()->getActions();
     }
 
+    protected function getTableActionsPosition(): ?string
+    {
+        return $this->getResourceTable()->getActionsPosition();
+    }
+
     protected function getTableBulkActions(): array
     {
         return $this->getResourceTable()->getBulkActions();
     }
 
+    public function isTableLoadingDeferred(): bool
+    {
+        return $this->getResourceTable()->isLoadingDeferred();
+    }
+
     protected function getTableColumns(): array
     {
         return $this->getResourceTable()->getColumns();
+    }
+
+    protected function getTableContentGrid(): ?array
+    {
+        return $this->getResourceTable()->getContentGrid();
     }
 
     protected function getTableFilters(): array
@@ -364,22 +375,95 @@ class ListRecords extends Page implements Tables\Contracts\HasTable
         return $this->getResourceTable()->getFiltersLayout();
     }
 
+    public function getTableRecordCheckboxPosition(): string
+    {
+        return $this->getResourceTable()->getRecordCheckboxPosition() ?? Tables\Actions\RecordCheckboxPosition::BeforeCells;
+    }
+
     protected function getTableHeaderActions(): array
     {
         return $this->getResourceTable()->getHeaderActions();
     }
 
+    protected function getTableReorderColumn(): ?string
+    {
+        return $this->getResourceTable()->getReorderColumn();
+    }
+
+    protected function isTableReorderable(): bool
+    {
+        return filled($this->getTableReorderColumn()) && static::getResource()::canReorder();
+    }
+
+    protected function getTablePollingInterval(): ?string
+    {
+        return $this->getResourceTable()->getPollingInterval();
+    }
+
     protected function getTableRecordUrlUsing(): ?Closure
     {
         return function (Model $record): ?string {
-            $resource = static::getResource();
+            foreach (['view', 'edit'] as $action) {
+                $action = $this->getCachedTableAction($action);
 
-            if ($resource::hasPage('view') && $resource::canView($record)) {
-                return $resource::getUrl('view', ['record' => $record]);
+                if (! $action) {
+                    continue;
+                }
+
+                $action->record($record);
+
+                if ($action->isHidden()) {
+                    continue;
+                }
+
+                $url = $action->getUrl();
+
+                if (! $url) {
+                    continue;
+                }
+
+                return $url;
             }
 
-            if ($resource::hasPage('edit') && $resource::canEdit($record)) {
-                return $resource::getUrl('edit', ['record' => $record]);
+            $resource = static::getResource();
+
+            foreach (['view', 'edit'] as $action) {
+                if (! $resource::hasPage($action)) {
+                    continue;
+                }
+
+                if (! $resource::{'can' . ucfirst($action)}($record)) {
+                    continue;
+                }
+
+                return $resource::getUrl($action, ['record' => $record]);
+            }
+
+            return null;
+        };
+    }
+
+    protected function getTableRecordActionUsing(): ?Closure
+    {
+        return function (Model $record): ?string {
+            foreach (['view', 'edit'] as $action) {
+                $action = $this->getCachedTableAction($action);
+
+                if (! $action) {
+                    continue;
+                }
+
+                $action->record($record);
+
+                if ($action->isHidden()) {
+                    continue;
+                }
+
+                if ($action->getUrl()) {
+                    continue;
+                }
+
+                return $action->getName();
             }
 
             return null;

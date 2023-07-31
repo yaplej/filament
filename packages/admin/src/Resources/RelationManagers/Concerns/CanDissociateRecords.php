@@ -2,6 +2,7 @@
 
 namespace Filament\Resources\RelationManagers\Concerns;
 
+use Filament\Notifications\Notification;
 use Filament\Tables;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -62,12 +63,15 @@ trait CanDissociateRecords
         $this->callHook('afterDissociate');
 
         if (filled($this->getDissociatedNotificationMessage())) {
-            $this->notify('success', $this->getDissociatedNotificationMessage());
+            Notification::make()
+                ->title($this->getDissociatedNotificationMessage())
+                ->success()
+                ->send();
         }
     }
 
     /**
-     * @deprecated Use `->successNotificationMessage()` on the action instead.
+     * @deprecated Use `->successNotificationTitle()` on the action instead.
      */
     protected function getDissociatedNotificationMessage(): ?string
     {
@@ -92,12 +96,15 @@ trait CanDissociateRecords
         $this->callHook('afterBulkDissociate');
 
         if (filled($this->getBulkDissociatedNotificationMessage())) {
-            $this->notify('success', $this->getBulkDissociatedNotificationMessage());
+            Notification::make()
+                ->title($this->getBulkDissociatedNotificationMessage())
+                ->success()
+                ->send();
         }
     }
 
     /**
-     * @deprecated Use `->successNotificationMessage()` on the action instead.
+     * @deprecated Use `->successNotificationTitle()` on the action instead.
      */
     protected function getBulkDissociatedNotificationMessage(): ?string
     {

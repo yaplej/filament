@@ -4,6 +4,7 @@ namespace Filament\Resources\Pages\EditRecord\Concerns;
 
 use Filament\Resources\Pages\Concerns\HasActiveFormLocaleSwitcher;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Arr;
 
 trait Translatable
 {
@@ -19,11 +20,13 @@ trait Translatable
             $this->setActiveFormLocale();
         }
 
-        $data = $this->record->toArray();
+        $data = $this->record->attributesToArray();
 
         foreach (static::getResource()::getTranslatableAttributes() as $attribute) {
             $data[$attribute] = $this->record->getTranslation($attribute, $this->activeFormLocale);
         }
+
+        $data = $this->mutateFormDataBeforeFill($data);
 
         $this->form->fill($data);
 
@@ -44,7 +47,13 @@ trait Translatable
 
     protected function handleRecordUpdate(Model $record, array $data): Model
     {
-        $record->setLocale($this->activeFormLocale)->fill($data)->save();
+        $record->fill(Arr::except($data, $record->getTranslatableAttributes()));
+
+        foreach (Arr::only($data, $record->getTranslatableAttributes()) as $key => $value) {
+            $record->setTranslation($key, $this->activeFormLocale, $value);
+        }
+
+        $record->save();
 
         return $record;
     }

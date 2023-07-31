@@ -27,7 +27,7 @@ class TestsRecords
                         $record = $livewire->getTableRecordKey($record);
                     }
 
-                    return "wire:key=\"table.records.{$record}\"";
+                    return "{$livewire->id}.table.records.{$record}";
                 },
                 $records instanceof Collection ? $records->all() : $records,
             );
@@ -53,7 +53,7 @@ class TestsRecords
                         $record = $livewire->getTableRecordKey($record);
                     }
 
-                    return "wire:key=\"table.records.{$record}\"";
+                    return "wire:key=\"{$livewire->id}.table.records.{$record}\"";
                 },
                 $records instanceof Collection ? $records->all() : $records,
             );
@@ -74,6 +74,15 @@ class TestsRecords
                 $this->instance()->getAllTableRecordsCount(),
                 message: "Failed asserting that the [{$livewireClass}] table has [{$count}] records in total.",
             );
+
+            return $this;
+        };
+    }
+
+    public function loadTable(): Closure
+    {
+        return function (): static {
+            $this->call('loadTable');
 
             return $this;
         };

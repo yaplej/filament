@@ -2,7 +2,27 @@
 
 return [
 
+    'columns' => [
+
+        'tags' => [
+            'more' => 'dan :count lagi',
+        ],
+
+        'messages' => [
+            'copied' => 'Disalin',
+        ],
+
+    ],
+
     'fields' => [
+
+        'bulk_select_page' => [
+            'label' => 'Pilih/nyahpilih semua item untuk tindakan pukal.',
+        ],
+
+        'bulk_select_record' => [
+            'label' => 'Pilih/nyahpilih item :key untuk tindakan pukal.',
+        ],
 
         'search_query' => [
             'label' => 'Cari',
@@ -20,7 +40,13 @@ return [
         'fields' => [
 
             'records_per_page' => [
+
                 'label' => 'setiap halaman',
+
+                'options' => [
+                    'all' => 'Semua',
+                ],
+
             ],
 
         ],
@@ -45,6 +71,14 @@ return [
 
     'buttons' => [
 
+        'disable_reordering' => [
+            'label' => 'Selesai menyusun semula rekod',
+        ],
+
+        'enable_reordering' => [
+            'label' => 'Menyusun semula rekod',
+        ],
+
         'filter' => [
             'label' => 'Penapis',
         ],
@@ -53,21 +87,46 @@ return [
             'label' => 'Tindakan terbuka',
         ],
 
+        'toggle_columns' => [
+            'label' => 'Togol lajur',
+        ],
+
     ],
 
     'empty' => [
+
         'heading' => 'Tiada rekod dijumpai',
+
+        'buttons' => [
+
+            'reset_column_searches' => [
+                'label' => 'Kosongkan carian',
+            ],
+
+        ],
+
     ],
 
     'filters' => [
 
         'buttons' => [
 
+            'remove' => [
+                'label' => 'Buang penapis',
+            ],
+
+            'remove_all' => [
+                'label' => 'Buang semua penapis',
+                'tooltip' => 'Buang semua penapis',
+            ],
+
             'reset' => [
                 'label' => 'Tetapkan semula penapis',
             ],
 
         ],
+
+        'indicator' => 'Penapis aktif',
 
         'multi_select' => [
             'placeholder' => 'Semua',
@@ -77,7 +136,21 @@ return [
             'placeholder' => 'Semua',
         ],
 
+        'trashed' => [
+
+            'label' => 'Rekod telah dipadamkan',
+
+            'only_trashed' => 'Hanya rekod yang dipadamkan',
+
+            'with_trashed' => 'Dengan rekod yang dipadam',
+
+            'without_trashed' => 'Tanpa rekod yang dipadam',
+
+        ],
+
     ],
+
+    'reorder_indicator' => 'Seret dan lepaskan rekod mengikut susunan.',
 
     'selection_indicator' => [
 
@@ -91,6 +164,29 @@ return [
 
             'deselect_all' => [
                 'label' => 'Nyahpilih semua',
+            ],
+
+        ],
+
+    ],
+
+    'sorting' => [
+
+        'fields' => [
+
+            'column' => [
+                'label' => 'Disusun mengikut',
+            ],
+
+            'direction' => [
+
+                'label' => 'Arah susunan',
+
+                'options' => [
+                    'asc' => 'Menaik',
+                    'desc' => 'Menurun',
+                ],
+
             ],
 
         ],

@@ -1,18 +1,31 @@
 <?php
 
 return [
+
     'builder' => [
 
         'collapsed' => 'Inhoud ingeklapt',
 
         'buttons' => [
 
+            'clone_item' => [
+                'label' => 'Klonen',
+            ],
+
             'create_item' => [
                 'label' => 'Toevoegen aan :label',
             ],
 
+            'create_item_between' => [
+                'label' => 'Invoegen',
+            ],
+
             'delete_item' => [
                 'label' => 'Verwijderen',
+            ],
+
+            'move_item' => [
+                'label' => 'Verplaatsen',
             ],
 
             'move_item_down' => [
@@ -43,6 +56,22 @@ return [
 
     ],
 
+    'checkbox_list' => [
+
+        'buttons' => [
+
+            'deselect_all' => [
+                'label' => 'Alles deselecteren',
+            ],
+
+            'select_all' => [
+                'label' => 'Alles selecteren',
+            ],
+
+        ],
+
+    ],
+
     'key_value' => [
 
         'buttons' => [
@@ -53,6 +82,10 @@ return [
 
             'delete' => [
                 'label' => 'Rij verwijderen',
+            ],
+
+            'reorder' => [
+                'label' => 'Rij herordenen',
             ],
 
         ],
@@ -100,6 +133,14 @@ return [
 
             'delete_item' => [
                 'label' => 'Verwijderen',
+            ],
+
+            'clone_item' => [
+                'label' => 'Klonen',
+            ],
+
+            'move_item' => [
+                'label' => 'Verplaatsen',
             ],
 
             'move_item_down' => [
@@ -163,6 +204,7 @@ return [
             'ordered_list' => 'Genummerde lijst',
             'redo' => 'Opnieuw uitvoeren',
             'strike' => 'Doorhalen',
+            'underline' => 'Onderstrepen',
             'undo' => 'Ongedaan maken',
         ],
 
@@ -198,6 +240,8 @@ return [
         ],
 
         'loading_message' => 'Laden...',
+
+        'max_items_message' => 'Er kunnen maar :count geselecteerd worden.',
 
         'no_search_results_message' => 'Er zijn geen resultaten voor je zoekopdracht.',
 

@@ -2,7 +2,27 @@
 
 return [
 
+    'columns' => [
+
+        'tags' => [
+            'more' => 'och :count till',
+        ],
+
+        'messages' => [
+            'copied' => 'Kopierad',
+        ],
+
+    ],
+
     'fields' => [
+
+        'bulk_select_page' => [
+            'label' => 'Markera/avmarkera alla rader för massåtgärder.',
+        ],
+
+        'bulk_select_record' => [
+            'label' => 'Markera/avmarkera rad :key för massåtgärder.',
+        ],
 
         'search_query' => [
             'label' => 'Sök',
@@ -15,12 +35,18 @@ return [
 
         'label' => 'Meny för sidnumerering',
 
-        'overview' => 'Visar :first till :last av :total resultat',
+        'overview' => '{1} Visar 1 resultat|[2,*] Visar :first till :last av :total resultat',
 
         'fields' => [
 
             'records_per_page' => [
+
                 'label' => 'per sida',
+
+                'options' => [
+                    'all' => 'Alla',
+                ],
+
             ],
 
         ],
@@ -45,6 +71,14 @@ return [
 
     'buttons' => [
 
+        'disable_reordering' => [
+            'label' => 'Sluta ändra ordning på rader',
+        ],
+
+        'enable_reordering' => [
+            'label' => 'Ändra ordning på rader',
+        ],
+
         'filter' => [
             'label' => 'Filter',
         ],
@@ -67,15 +101,22 @@ return [
 
         'buttons' => [
 
+            'remove' => [
+                'label' => 'Ta bort filter',
+            ],
+
+            'remove_all' => [
+                'label' => 'Ta bort alla filter',
+                'tooltip' => 'Ta bort alla filter',
+            ],
+
             'reset' => [
                 'label' => 'Återställ filter',
             ],
 
-            'close' => [
-                'label' => 'Stäng',
-            ],
-
         ],
+
+        'indicator' => 'Aktiva filter',
 
         'multi_select' => [
             'placeholder' => 'Alla',
@@ -99,6 +140,8 @@ return [
 
     ],
 
+    'reorder_indicator' => 'Dra och släpp raderna i önskad ordning.',
+
     'selection_indicator' => [
 
         'selected_count' => '1 rad vald.|:count rader valda.',
@@ -106,11 +149,34 @@ return [
         'buttons' => [
 
             'select_all' => [
-                'label' => 'Välj alla :count',
+                'label' => 'Markera alla :count',
             ],
 
             'deselect_all' => [
                 'label' => 'Avmarkera alla',
+            ],
+
+        ],
+
+    ],
+
+    'sorting' => [
+
+        'fields' => [
+
+            'column' => [
+                'label' => 'Sortera efter',
+            ],
+
+            'direction' => [
+
+                'label' => 'Sorteringsriktning',
+
+                'options' => [
+                    'asc' => 'Stigande',
+                    'desc' => 'Fallande',
+                ],
+
             ],
 
         ],

@@ -8,43 +8,67 @@ return [
 
         'buttons' => [
 
-             'create_item' => [
-                 'label' => 'Добавить к :label',
-             ],
-
-             'create_item_between' => [
-                'label' => 'Добавить между',
+            'clone_item' => [
+                'label' => 'Клонировать',
             ],
 
-             'delete_item' => [
-                 'label' => 'Удалить',
-             ],
+            'create_item' => [
+                'label' => 'Добавить к :label',
+            ],
 
-             'move_item_down' => [
-                 'label' => 'Переместить вниз',
-             ],
+            'create_item_between' => [
+                'label' => 'Вставить',
+            ],
 
-             'move_item_up' => [
-                 'label' => 'Переместить вверх',
-             ],
+            'delete_item' => [
+                'label' => 'Удалить',
+            ],
 
-             'collapse_item' => [
-                 'label' => 'Свернуть',
-             ],
+            'move_item' => [
+                'label' => 'Переместить',
+            ],
 
-             'expand_item' => [
-                 'label' => 'Развернуть',
-             ],
+            'move_item_down' => [
+                'label' => 'Переместить вниз',
+            ],
 
-             'collapse_all' => [
-                 'label' => 'Свернуть все',
-             ],
+            'move_item_up' => [
+                'label' => 'Переместить вверх',
+            ],
 
-             'expand_all' => [
-                 'label' => 'Развернуть все',
-             ],
+            'collapse_item' => [
+                'label' => 'Свернуть',
+            ],
 
-         ],
+            'expand_item' => [
+                'label' => 'Развернуть',
+            ],
+
+            'collapse_all' => [
+                'label' => 'Свернуть все',
+            ],
+
+            'expand_all' => [
+                'label' => 'Развернуть все',
+            ],
+
+        ],
+
+    ],
+
+    'checkbox_list' => [
+
+        'buttons' => [
+
+            'deselect_all' => [
+                'label' => 'Снять выделение',
+            ],
+
+            'select_all' => [
+                'label' => 'Выделить все',
+            ],
+
+        ],
 
     ],
 
@@ -58,6 +82,9 @@ return [
 
             'delete' => [
                 'label' => 'Удалить строку',
+            ],
+            'reorder' => [
+                'label' => 'Переместить строку',
             ],
 
         ],
@@ -83,7 +110,7 @@ return [
             'bold' => 'Жирный',
             'bullet_list' => 'Маркировочный список',
             'code_block' => 'Код',
-            'edit' => 'Редактировать',
+            'edit' => 'Изменить',
             'italic' => 'Курсив',
             'link' => 'Ссылка',
             'ordered_list' => 'Нумерованный список',
@@ -105,6 +132,14 @@ return [
 
             'delete_item' => [
                 'label' => 'Удалить',
+            ],
+
+            'clone_item' => [
+                'label' => 'Клонировать',
+            ],
+
+            'move_item' => [
+                'label' => 'Переместить',
             ],
 
             'move_item_down' => [
@@ -196,7 +231,15 @@ return [
             ],
 
         ],
+
+        'boolean' => [
+            'true' => 'Да',
+            'false' => 'Нет',
+        ],
+
         'loading_message' => 'Загрузка...',
+
+        'max_items_message' => 'Только :count можно выбрать.',
 
         'no_search_results_message' => 'Нет вариантов, соответствующих вашему запросу.',
 

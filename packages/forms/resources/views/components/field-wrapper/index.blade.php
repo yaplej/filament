@@ -4,9 +4,12 @@
     'labelPrefix' => null,
     'labelSrOnly' => false,
     'labelSuffix' => null,
+    'hasNestedRecursiveValidationRules' => false,
     'helperText' => null,
     'hint' => null,
+    'hintColor' => null,
     'hintIcon' => null,
+    'hintAction' => null,
     'required' => false,
     'statePath',
 ])
@@ -19,8 +22,10 @@
     @endif
 
     <div class="space-y-2">
-        @if (($label && (! $labelSrOnly)) || $labelPrefix || $labelSuffix || $hint)
-            <div class="flex items-center justify-between space-x-2 rtl:space-x-reverse">
+        @if (($label && (! $labelSrOnly)) || $labelPrefix || $labelSuffix || $hint || $hintIcon || $hintAction)
+            <div
+                class="flex items-center justify-between space-x-2 rtl:space-x-reverse"
+            >
                 @if ($label && (! $labelSrOnly))
                     <x-forms::field-wrapper.label
                         :for="$id"
@@ -37,9 +42,13 @@
                     {{ $labelSuffix }}
                 @endif
 
-                @if ($hint || $hintIcon)
-                    <x-forms::field-wrapper.hint :icon="$hintIcon">
-                        {!! filled($hint) ? \Illuminate\Support\Str::of($hint)->markdown()->sanitizeHtml() : null !!}
+                @if ($hint || $hintIcon || $hintAction)
+                    <x-forms::field-wrapper.hint
+                        :action="$hintAction"
+                        :color="$hintColor"
+                        :icon="$hintIcon"
+                    >
+                        {{ filled($hint) ? ($hint instanceof \Illuminate\Support\HtmlString ? $hint : \Illuminate\Support\Str::of($hint)->markdown()->sanitizeHtml()->toHtmlString()) : null }}
                     </x-forms::field-wrapper.hint>
                 @endif
             </div>
@@ -47,15 +56,15 @@
 
         {{ $slot }}
 
-        @if ($errors->has($statePath))
+        @if ($errors->has($statePath) || ($hasNestedRecursiveValidationRules && $errors->has("{$statePath}.*")))
             <x-forms::field-wrapper.error-message>
-                {{ $errors->first($statePath) }}
+                {{ $errors->first($statePath) ?: ($hasNestedRecursiveValidationRules ? $errors->first("{$statePath}.*") : null) }}
             </x-forms::field-wrapper.error-message>
         @endif
 
         @if ($helperText)
             <x-forms::field-wrapper.helper-text>
-                {!! \Illuminate\Support\Str::of($helperText)->markdown()->sanitizeHtml() !!}
+                {{ $helperText instanceof \Illuminate\Support\HtmlString ? $helperText : \Illuminate\Support\Str::of($helperText)->markdown()->sanitizeHtml()->toHtmlString() }}
             </x-forms::field-wrapper.helper-text>
         @endif
     </div>

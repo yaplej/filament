@@ -2,8 +2,16 @@
 
 return [
 
-    'title' => 'Görüntüle :label',
+    'title' => ':label görüntüle',
 
     'breadcrumb' => 'Görüntüle',
+
+    'form' => [
+
+        'tab' => [
+            'label' => 'Görüntüle',
+        ],
+
+    ],
 
 ];

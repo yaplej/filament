@@ -1,4 +1,4 @@
-<div class="flex items-center filament-global-search">
+<div class="filament-global-search ml-4 flex items-center rtl:ml-0 rtl:mr-4">
     <x-filament::global-search.start />
     {{ \Filament\Facades\Filament::renderHook('global-search.start') }}
 
@@ -7,7 +7,9 @@
             <x-filament::global-search.input />
 
             @if ($results !== null)
-                <x-filament::global-search.results-container :results="$results" />
+                <x-filament::global-search.results-container
+                    :results="$results"
+                />
             @endif
         </div>
     @endif

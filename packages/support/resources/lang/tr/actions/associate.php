@@ -8,12 +8,12 @@ return [
 
         'modal' => [
 
-            'heading' => 'İlişkilendir :label',
+            'heading' => ':label İlişkilendir',
 
             'fields' => [
 
-                'record_ids' => [
-                    'label' => 'Kayıtlar',
+                'record_id' => [
+                    'label' => 'Kayıt',
                 ],
 
             ],
@@ -25,7 +25,7 @@ return [
                 ],
 
                 'associate_another' => [
-                    'label' => 'İlişkilendir ve başka bir tane ilişkilendir',
+                    'label' => 'İlişkilendir ve başka bir taneye başla',
                 ],
 
             ],

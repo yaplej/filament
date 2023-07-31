@@ -2,6 +2,7 @@
 
 namespace Filament\Resources\RelationManagers\Concerns;
 
+use Filament\Notifications\Notification;
 use Filament\Tables;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -29,12 +30,15 @@ trait CanDetachRecords
         $this->callHook('afterDetach');
 
         if (filled($this->getDetachedNotificationMessage())) {
-            $this->notify('success', $this->getDetachedNotificationMessage());
+            Notification::make()
+                ->title($this->getDetachedNotificationMessage())
+                ->success()
+                ->send();
         }
     }
 
     /**
-     * @deprecated Use `->successNotificationMessage()` on the action instead.
+     * @deprecated Use `->successNotificationTitle()` on the action instead.
      */
     protected function getDetachedNotificationMessage(): ?string
     {
@@ -64,12 +68,15 @@ trait CanDetachRecords
         $this->callHook('afterBulkDetach');
 
         if (filled($this->getBulkDetachedNotificationMessage())) {
-            $this->notify('success', $this->getBulkDetachedNotificationMessage());
+            Notification::make()
+                ->title($this->getBulkDetachedNotificationMessage())
+                ->success()
+                ->send();
         }
     }
 
     /**
-     * @deprecated Use `->successNotificationMessage()` on the action instead.
+     * @deprecated Use `->successNotificationTitle()` on the action instead.
      */
     protected function getBulkDetachedNotificationMessage(): ?string
     {

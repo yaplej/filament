@@ -64,7 +64,7 @@ Below is a list of available chart widget classes which you may extend, and thei
 
 ## Generating chart data from an Eloquent model
 
-To generate chart data from an Eloquent model, Filament recommends that you install the `flowframe/laravel-trend` package. You can view the documentation on the [Flowframe website](https://docs.flowfra.me/docs/laravel-trend/installation-and-setup).
+To generate chart data from an Eloquent model, Filament recommends that you install the `flowframe/laravel-trend` package. You can view the [documentation](https://github.com/Flowframe/laravel-trend).
 
 Here is an example of generating chart data from a model using the `laravel-trend` package:
 
@@ -143,4 +143,26 @@ Alternatively, you may disable polling altogether:
 
 ```php
 protected static ?string $pollingInterval = null;
+```
+
+## Setting a maximum chart height
+
+You may place a maximum height on the chart to ensure that it doesn't get too big, using the `$maxHeight` property:
+
+```php
+protected static ?string $maxHeight = '300px';
+```
+
+## Setting chart configuration options
+
+You may specify an `$options` variable on the chart class to control the many configuration options that the Chart.js library provides. For instance, you could turn off the [legend](https://www.chartjs.org/docs/latest/configuration/legend.html) for `LineChartWidget` class:
+
+```php
+protected static ?array $options = [
+    'plugins' => [
+        'legend' => [
+            'display' => false,
+        ],
+    ],
+];
 ```

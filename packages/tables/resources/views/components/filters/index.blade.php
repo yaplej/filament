@@ -1,11 +1,14 @@
 @props([
-    'form'
+    'form',
 ])
 
-<div class="space-y-6 filament-tables-filters-form">
+<div
+    {{ $attributes->class(['filament-tables-filters-form space-y-6']) }}
+    x-data
+>
     {{ $form }}
 
-    <div class="text-right">
+    <div class="text-end">
         <x-tables::link
             wire:click="resetTableFiltersForm"
             color="danger"

@@ -20,6 +20,7 @@ abstract class BaseAction extends ViewComponent
     use HasExtraAttributes;
 
     protected string $evaluationIdentifier = 'action';
+
     protected string $viewIdentifier = 'action';
 
     final public function __construct(string $name)
@@ -48,6 +49,9 @@ abstract class BaseAction extends ViewComponent
         return null;
     }
 
+    /**
+     * @deprecated Use `->extraAttributes()` instead.
+     */
     public function withAttributes(array $attributes): static
     {
         return $this->extraAttributes($attributes);

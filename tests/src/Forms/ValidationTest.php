@@ -73,18 +73,56 @@ test('fields can be conditionally validated', function () {
     }
 });
 
-test('first invalid field can be focused', function () {
-    $container = ComponentContainer::make(Livewire::make())
-        ->statePath('data')
-        ->components([
-            (new Field(Str::random())),
-            $fieldToFocus = (new Field($firstInvalidFieldName = Str::random())),
-            (new Field($secondInvalidFieldName = Str::random())),
-        ]);
+test('fields can be required if', function () {
+    $rules = [];
+    $errors = [];
 
-    expect($container)
-        ->getInvalidComponentToFocus([
-            "data.{$firstInvalidFieldName}",
-            "data.{$secondInvalidFieldName}",
-        ])->toBe($fieldToFocus);
+    try {
+        ComponentContainer::make(Livewire::make())
+            ->statePath('data')
+            ->components([
+                $field1 = (new Field('one'))
+                    ->default('foo'),
+                $field2 = (new Field('two'))
+                    ->requiredIf('one', 'foo'),
+            ])
+            ->fill()
+            ->validate();
+    } catch (ValidationException $exception) {
+        $rules = array_keys($exception->validator->failed()[$field2->getStatePath()]);
+        $errors = $exception->validator->errors()->get($field2->getStatePath());
+    }
+
+    expect($rules)
+        ->toContain('RequiredIf');
+
+    expect($errors)
+        ->toContain('The two field is required when one is foo.');
+});
+
+test('fields can be required unless', function () {
+    $rules = [];
+    $errors = [];
+
+    try {
+        ComponentContainer::make(Livewire::make())
+            ->statePath('data')
+            ->components([
+                $field1 = (new Field('one'))
+                    ->default('bar'),
+                $field2 = (new Field('two'))
+                    ->requiredUnless('one', 'foo'),
+            ])
+            ->fill()
+            ->validate();
+    } catch (ValidationException $exception) {
+        $rules = array_keys($exception->validator->failed()[$field2->getStatePath()]);
+        $errors = $exception->validator->errors()->get($field2->getStatePath());
+    }
+
+    expect($rules)
+        ->toContain('RequiredUnless');
+
+    expect($errors)
+        ->toContain('The two field is required unless one is in foo.');
 });

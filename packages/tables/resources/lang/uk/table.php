@@ -2,6 +2,18 @@
 
 return [
 
+    'columns' => [
+
+        'tags' => [
+            'more' => 'і :count ще',
+        ],
+
+        'messages' => [
+            'copied' => 'Скопійовано',
+        ],
+
+    ],
+
     'fields' => [
 
         'search_query' => [
@@ -15,12 +27,18 @@ return [
 
         'label' => 'Пагінація',
 
-        'overview' => 'Показано від :first до :last із :total результатів',
+        'overview' => 'Показано з :first по :last з :total',
 
         'fields' => [
 
             'records_per_page' => [
+
                 'label' => 'на сторінку',
+
+                'options' => [
+                    'all' => 'Всі',
+                ],
+
             ],
 
         ],
@@ -28,15 +46,15 @@ return [
         'buttons' => [
 
             'go_to_page' => [
-                'label' => 'Перейти на сторінку :page',
+                'label' => 'Перейти до сторінки :page',
             ],
 
             'next' => [
-                'label' => 'Далі',
+                'label' => 'Наступна',
             ],
 
             'previous' => [
-                'label' => 'Попередній',
+                'label' => 'Попередня',
             ],
 
         ],
@@ -45,12 +63,20 @@ return [
 
     'buttons' => [
 
+        'disable_reordering' => [
+            'label' => 'Зберегти порядок',
+        ],
+
+        'enable_reordering' => [
+            'label' => 'Змінити порядок',
+        ],
+
         'filter' => [
             'label' => 'Фільтр',
         ],
 
         'open_actions' => [
-            'label' => 'Відкриті дії',
+            'label' => 'Відкрити дії',
         ],
 
         'toggle_columns' => [
@@ -60,22 +86,29 @@ return [
     ],
 
     'empty' => [
-        'heading' => 'Записів не знайдено',
+        'heading' => 'Не знайдено записів',
     ],
 
     'filters' => [
 
         'buttons' => [
 
+            'remove' => [
+                'label' => 'Видалити фільтр',
+            ],
+
+            'remove_all' => [
+                'label' => 'Очистити фільтри',
+                'tooltip' => 'Очистити фільтри',
+            ],
+
             'reset' => [
                 'label' => 'Скинути фільтри',
             ],
 
-            'close' => [
-                'label' => 'Закрити',
-            ],
-
         ],
+
+        'indicator' => 'Активні фільтри',
 
         'multi_select' => [
             'placeholder' => 'Всі',
@@ -85,11 +118,25 @@ return [
             'placeholder' => 'Всі',
         ],
 
+        'trashed' => [
+
+            'label' => 'Видалені записи',
+
+            'only_trashed' => 'Тільки видалені записи',
+
+            'with_trashed' => 'З видаленими записами',
+
+            'without_trashed' => 'Без видалених записів',
+
+        ],
+
     ],
+
+    'reorder_indicator' => 'Drag-n-drop порядок записів.',
 
     'selection_indicator' => [
 
-        'selected_count' => 'Вибрано 1 запис.|:count записів вибрано.',
+        'selected_count' => 'Вибрано 1 запис.|Вибрано :count записів.',
 
         'buttons' => [
 
@@ -98,7 +145,30 @@ return [
             ],
 
             'deselect_all' => [
-                'label' => 'Скасувати весь вибір',
+                'label' => 'Прибрати виділення з усіх',
+            ],
+
+        ],
+
+    ],
+
+    'sorting' => [
+
+        'fields' => [
+
+            'column' => [
+                'label' => 'Сортування',
+            ],
+
+            'direction' => [
+
+                'label' => 'Напрямок сортування',
+
+                'options' => [
+                    'asc' => 'За зростанням',
+                    'desc' => 'За зменшенням',
+                ],
+
             ],
 
         ],

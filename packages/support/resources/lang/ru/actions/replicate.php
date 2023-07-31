@@ -2,14 +2,28 @@
 
 return [
 
-     'single' => [
+    'single' => [
 
-         'label' => 'Копировать',
+        'label' => 'Копировать',
 
-         'messages' => [
-             'replicated' => 'Запись скопирована',
-         ],
+        'modal' => [
 
-     ],
+            'heading' => 'Копировать :label',
+
+            'actions' => [
+
+                'replicate' => [
+                    'label' => 'Копировать',
+                ],
+
+            ],
+
+        ],
+
+        'messages' => [
+            'replicated' => 'Запись скопирована',
+        ],
+
+    ],
 
 ];

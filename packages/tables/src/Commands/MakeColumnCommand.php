@@ -2,15 +2,17 @@
 
 namespace Filament\Tables\Commands;
 
+use Filament\Support\Commands\Concerns\CanManipulateFiles;
+use Filament\Support\Commands\Concerns\CanValidateInput;
 use Illuminate\Console\Command;
 use Illuminate\Support\Str;
 
 class MakeColumnCommand extends Command
 {
-    use Concerns\CanManipulateFiles;
-    use Concerns\CanValidateInput;
+    use CanManipulateFiles;
+    use CanValidateInput;
 
-    protected $description = 'Creates a table column class and cell view.';
+    protected $description = 'Create a new table column class and cell view';
 
     protected $signature = 'make:table-column {name?} {--F|force}';
 

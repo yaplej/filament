@@ -3,14 +3,18 @@
 namespace Filament\Pages;
 
 use Filament\Forms\ComponentContainer;
+use Filament\Notifications\Notification;
 use Filament\Pages\Actions\Action;
+use Filament\Pages\Contracts\HasFormActions;
 use Illuminate\Support\Str;
 
 /**
  * @property ComponentContainer $form
  */
-class SettingsPage extends Page
+class SettingsPage extends Page implements HasFormActions
 {
+    use Concerns\HasFormActions;
+
     protected static string $settings;
 
     protected static string $view = 'filament-spatie-laravel-settings-plugin::pages.settings-page';
@@ -59,18 +63,37 @@ class SettingsPage extends Page
 
         $this->callHook('afterSave');
 
+        $this->getSavedNotification()?->send();
+
         if ($redirectUrl = $this->getRedirectUrl()) {
             $this->redirect($redirectUrl);
         }
-
-        if (filled($this->getSavedNotificationMessage())) {
-            $this->notify('success', $this->getSavedNotificationMessage());
-        }
     }
 
+    protected function getSavedNotification(): ?Notification
+    {
+        $title = $this->getSavedNotificationTitle();
+
+        if (blank($title)) {
+            return null;
+        }
+
+        return Notification::make()
+            ->success()
+            ->title($title);
+    }
+
+    protected function getSavedNotificationTitle(): ?string
+    {
+        return $this->getSavedNotificationMessage() ?? __('filament-spatie-laravel-settings-plugin::pages/settings-page.messages.saved');
+    }
+
+    /**
+     * @deprecated Use `getSavedNotificationTitle()` instead.
+     */
     protected function getSavedNotificationMessage(): ?string
     {
-        return __('filament-spatie-laravel-settings-plugin::pages/settings-page.messages.saved');
+        return null;
     }
 
     protected function callHook(string $hook): void
@@ -90,18 +113,29 @@ class SettingsPage extends Page
     public static function getSettings(): string
     {
         return static::$settings ?? (string) Str::of(class_basename(static::class))
-                ->beforeLast('Settings')
-                ->prepend('App\\Settings\\')
-                ->append('Settings');
+            ->beforeLast('Settings')
+            ->prepend('App\\Settings\\')
+            ->append('Settings');
     }
 
     protected function getFormActions(): array
     {
         return [
-            Action::make('save')
-                ->label(__('filament-spatie-laravel-settings-plugin::pages/settings-page.form.actions.save.label'))
-                ->submit('save'),
+            $this->getSaveFormAction(),
         ];
+    }
+
+    protected function getSaveFormAction(): Action
+    {
+        return Action::make('save')
+            ->label(__('filament-spatie-laravel-settings-plugin::pages/settings-page.form.actions.save.label'))
+            ->submit('save')
+            ->keyBindings(['mod+s']);
+    }
+
+    protected function getSubmitFormAction(): Action
+    {
+        return $this->getSaveFormAction();
     }
 
     protected function getForms(): array

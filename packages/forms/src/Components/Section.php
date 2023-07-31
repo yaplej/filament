@@ -10,6 +10,7 @@ use Illuminate\Support\Str;
 class Section extends Component implements Contracts\CanConcealComponents, Contracts\CanEntangleWithSingularRelationships
 {
     use Concerns\CanBeCollapsed;
+    use Concerns\CanBeCompacted;
     use Concerns\EntanglesStateWithSingularRelationship;
     use HasExtraAlpineAttributes;
 
@@ -17,14 +18,20 @@ class Section extends Component implements Contracts\CanConcealComponents, Contr
 
     protected string | Htmlable | Closure | null $description = null;
 
-    protected string | Closure $heading;
+    protected string | Htmlable | Closure $heading;
 
-    final public function __construct(string | Closure $heading)
+    protected bool | Closure | null $isAside = null;
+
+    protected string | Closure | null $icon = null;
+
+    protected bool | Closure $isFormBefore = false;
+
+    final public function __construct(string | Htmlable | Closure $heading)
     {
         $this->heading($heading);
     }
 
-    public static function make(string | Closure $heading): static
+    public static function make(string | Htmlable | Closure $heading): static
     {
         $static = app(static::class, ['heading' => $heading]);
         $static->configure();
@@ -46,9 +53,16 @@ class Section extends Component implements Contracts\CanConcealComponents, Contr
         return $this;
     }
 
-    public function heading(string | Closure $heading): static
+    public function heading(string | Htmlable | Closure $heading): static
     {
         $this->heading = $heading;
+
+        return $this;
+    }
+
+    public function aside(bool | Closure | null $condition = true): static
+    {
+        $this->isAside = $condition;
 
         return $this;
     }
@@ -58,7 +72,7 @@ class Section extends Component implements Contracts\CanConcealComponents, Contr
         return $this->evaluate($this->description);
     }
 
-    public function getHeading(): string
+    public function getHeading(): string | Htmlable
     {
         return $this->evaluate($this->heading);
     }
@@ -81,5 +95,34 @@ class Section extends Component implements Contracts\CanConcealComponents, Contr
     public function canConcealComponents(): bool
     {
         return $this->isCollapsible();
+    }
+
+    public function isAside(): bool
+    {
+        return (bool) ($this->evaluate($this->isAside) ?? false);
+    }
+
+    public function icon(string | Closure | null $icon): static
+    {
+        $this->icon = $icon;
+
+        return $this;
+    }
+
+    public function getIcon(): ?string
+    {
+        return $this->evaluate($this->icon);
+    }
+
+    public function formBefore(bool | Closure $condition = true): static
+    {
+        $this->isFormBefore = $condition;
+
+        return $this;
+    }
+
+    public function isFormBefore(): bool
+    {
+        return (bool) $this->evaluate($this->isFormBefore);
     }
 }

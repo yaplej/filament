@@ -5,7 +5,6 @@ namespace Filament\Tables\Concerns;
 use Filament\Forms;
 use Filament\Forms\ComponentContainer;
 use Filament\Tables\Filters\BaseFilter;
-use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\Layout;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -20,23 +19,24 @@ trait HasFilters
 
     public function cacheTableFilters(): void
     {
-        $this->cachedTableFilters = collect($this->getTableFilters())
-            ->mapWithKeys(function (BaseFilter $filter): array {
-                $filter->table($this->getCachedTable());
+        $this->cachedTableFilters = [];
 
-                return [$filter->getName() => $filter];
-            })
-            ->toArray();
+        foreach ($this->getTableFilters() as $filter) {
+            $filter->table($this->getCachedTable());
+
+            $this->cachedTableFilters[$filter->getName()] = $filter;
+        }
     }
 
     public function getCachedTableFilters(): array
     {
-        return collect($this->cachedTableFilters)
-            ->filter(fn (BaseFilter $filter): bool => ! $filter->isHidden())
-            ->toArray();
+        return array_filter(
+            $this->cachedTableFilters,
+            fn (BaseFilter $filter): bool => ! $filter->isHidden(),
+        );
     }
 
-    public function getCachedTableFilter(string $name): ?Filter
+    public function getCachedTableFilter(string $name): ?BaseFilter
     {
         return $this->getCachedTableFilters()[$name] ?? null;
     }
@@ -61,14 +61,62 @@ trait HasFilters
 
     public function updatedTableFilters(): void
     {
-        $this->deselectAllTableRecords();
+        if ($this->shouldPersistTableFiltersInSession()) {
+            session()->put(
+                $this->getTableFiltersSessionKey(),
+                $this->tableFilters,
+            );
+        }
+
+        if ($this->shouldDeselectAllRecordsWhenTableFiltered()) {
+            $this->deselectAllTableRecords();
+        }
 
         $this->resetPage();
+    }
+
+    public function removeTableFilter(string $filter, ?string $field = null): void
+    {
+        $filterGroup = $this->getTableFiltersForm()->getComponents()[$filter];
+        $fields = $filterGroup?->getChildComponentContainer()->getFlatFields() ?? [];
+
+        if (filled($field) && array_key_exists($field, $fields)) {
+            $fields = [$fields[$field]];
+        }
+
+        foreach ($fields as $field) {
+            $state = $field->getState();
+
+            $field->state(match (true) {
+                is_array($state) => [],
+                $state === true => false,
+                default => null,
+            });
+        }
+
+        $this->updatedTableFilters();
+    }
+
+    public function removeTableFilters(): void
+    {
+        foreach ($this->getTableFiltersForm()->getFlatFields(withAbsolutePathKeys: true) as $field) {
+            $state = $field->getState();
+
+            $field->state(match (true) {
+                is_array($state) => [],
+                is_bool($state) => false,
+                default => null,
+            });
+        }
+
+        $this->updatedTableFilters();
     }
 
     public function resetTableFiltersForm(): void
     {
         $this->getTableFiltersForm()->fill();
+
+        $this->updatedTableFilters();
     }
 
     protected function applyFiltersToTableQuery(Builder $query): Builder
@@ -97,10 +145,28 @@ trait HasFilters
         return [];
     }
 
+    public function getTableFilterState(string $name): ?array
+    {
+        return $this->getTableFiltersForm()->getRawState()[$this->parseFilterName($name)] ?? null;
+    }
+
+    public function parseFilterName(string $name): string
+    {
+        if (! class_exists($name)) {
+            return $name;
+        }
+
+        if (! is_subclass_of($name, BaseFilter::class)) {
+            return $name;
+        }
+
+        return $name::getDefaultName();
+    }
+
     protected function getTableFiltersFormColumns(): int | array
     {
         return match ($this->getTableFiltersLayout()) {
-            Layout::AboveContent => [
+            Layout::AboveContent, Layout::BelowContent => [
                 'sm' => 2,
                 'lg' => 3,
                 'xl' => 4,
@@ -110,14 +176,24 @@ trait HasFilters
         };
     }
 
+    protected function getTableFiltersFormMaxHeight(): ?string
+    {
+        return null;
+    }
+
     protected function getTableFiltersFormSchema(): array
     {
-        return array_map(
-            fn (BaseFilter $filter) => Forms\Components\Group::make()
+        $schema = [];
+
+        foreach ($this->getCachedTableFilters() as $filter) {
+            $schema[$filter->getName()] = Forms\Components\Group::make()
                 ->schema($filter->getFormSchema())
-                ->statePath($filter->getName()),
-            $this->getCachedTableFilters(),
-        );
+                ->statePath($filter->getName())
+                ->columnSpan($filter->getColumnSpan())
+                ->columns($filter->getColumns());
+        }
+
+        return $schema;
     }
 
     protected function getTableFiltersFormWidth(): ?string
@@ -133,5 +209,17 @@ trait HasFilters
     protected function getTableFiltersLayout(): ?string
     {
         return null;
+    }
+
+    public function getTableFiltersSessionKey(): string
+    {
+        $table = class_basename($this::class);
+
+        return "tables.{$table}_filters";
+    }
+
+    protected function shouldPersistTableFiltersInSession(): bool
+    {
+        return false;
     }
 }

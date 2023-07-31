@@ -12,8 +12,8 @@ return [
 
             'fields' => [
 
-                'record_ids' => [
-                    'label' => 'تۆمارەکان',
+                'record_id' => [
+                    'label' => 'تۆمار',
                 ],
 
             ],
@@ -33,7 +33,7 @@ return [
         ],
 
         'messages' => [
-            'attached' => 'لکەنرا',
+            'attached' => 'لکێنرا',
         ],
 
     ],

@@ -8,12 +8,24 @@ return [
 
         'buttons' => [
 
+            'clone_item' => [
+                'label' => 'Clone',
+            ],
+
             'create_item' => [
                 'label' => 'Add to :label',
             ],
 
+            'create_item_between' => [
+                'label' => 'Insert',
+            ],
+
             'delete_item' => [
                 'label' => 'Delete',
+            ],
+
+            'move_item' => [
+                'label' => 'Move',
             ],
 
             'move_item_down' => [
@@ -44,16 +56,36 @@ return [
 
     ],
 
+    'checkbox_list' => [
+
+        'buttons' => [
+
+            'deselect_all' => [
+                'label' => 'Deselect all',
+            ],
+
+            'select_all' => [
+                'label' => 'Select all',
+            ],
+
+        ],
+
+    ],
+
     'key_value' => [
 
         'buttons' => [
 
             'add' => [
-                'label' => 'Add Row',
+                'label' => 'Add row',
             ],
 
             'delete' => [
-                'label' => 'Delete Row',
+                'label' => 'Delete row',
+            ],
+
+            'reorder' => [
+                'label' => 'Reorder row',
             ],
 
         ],
@@ -101,6 +133,14 @@ return [
 
             'delete_item' => [
                 'label' => 'Delete',
+            ],
+
+            'clone_item' => [
+                'label' => 'Clone',
+            ],
+
+            'move_item' => [
+                'label' => 'Move',
             ],
 
             'move_item_down' => [
@@ -164,6 +204,7 @@ return [
             'ordered_list' => 'Numbered list',
             'redo' => 'Redo',
             'strike' => 'Strikethrough',
+            'underline' => 'Underline',
             'undo' => 'Undo',
         ],
 
@@ -199,6 +240,8 @@ return [
         ],
 
         'loading_message' => 'Loading...',
+
+        'max_items_message' => 'Only :count can be selected.',
 
         'no_search_results_message' => 'No options match your search.',
 

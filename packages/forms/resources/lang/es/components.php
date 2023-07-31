@@ -8,12 +8,24 @@ return [
 
         'buttons' => [
 
+            'clone_item' => [
+                'label' => 'Clonar',
+            ],
+
             'create_item' => [
                 'label' => 'Añadir a :label',
             ],
 
+            'create_item_between' => [
+                'label' => 'Insertar',
+            ],
+
             'delete_item' => [
                 'label' => 'Borrar',
+            ],
+
+            'move_item' => [
+                'label' => 'Mover',
             ],
 
             'move_item_down' => [
@@ -44,16 +56,36 @@ return [
 
     ],
 
+    'checkbox_list' => [
+
+        'buttons' => [
+
+            'deselect_all' => [
+                'label' => 'Deseleccionar todos',
+            ],
+
+            'select_all' => [
+                'label' => 'Seleccionar todos',
+            ],
+
+        ],
+
+    ],
+
     'key_value' => [
 
         'buttons' => [
 
             'add' => [
-                'label' => 'Añadir Fila',
+                'label' => 'Añadir fila',
             ],
 
             'delete' => [
-                'label' => 'Eliminar Fila',
+                'label' => 'Eliminar fila',
+            ],
+
+            'reorder' => [
+                'label' => 'Reordenar fila',
             ],
 
         ],
@@ -78,7 +110,7 @@ return [
             'attach_files' => 'Adjuntar archivos',
             'bold' => 'Negrita',
             'bullet_list' => 'Viñetas',
-            'code_block' => 'Código',
+            'code_block' => 'Bloque de código',
             'edit' => 'Escribir',
             'italic' => 'Cursiva',
             'link' => 'Enlace',
@@ -101,6 +133,14 @@ return [
 
             'delete_item' => [
                 'label' => 'Borrar',
+            ],
+
+            'clone_item' => [
+                'label' => 'Clonar',
+            ],
+
+            'move_item' => [
+                'label' => 'Mover',
             ],
 
             'move_item_down' => [
@@ -155,7 +195,7 @@ return [
             'blockquote' => 'Cita',
             'bold' => 'Negrita',
             'bullet_list' => 'Viñetas',
-            'code_block' => 'Código',
+            'code_block' => 'Bloque de código',
             'h1' => 'Título',
             'h2' => 'Encabezado',
             'h3' => 'Subencabezado',
@@ -199,6 +239,8 @@ return [
         ],
 
         'loading_message' => 'Cargando...',
+
+        'max_items_message' => 'Solo :count pueden ser seleccionados.',
 
         'no_search_results_message' => 'No se encontraron coincidencias con su búsqueda.',
 

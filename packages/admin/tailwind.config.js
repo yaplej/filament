@@ -5,6 +5,7 @@ module.exports = {
     content: [
         './packages/admin/resources/**/*.blade.php',
         './packages/forms/resources/**/*.blade.php',
+        './packages/notifications/resources/**/*.blade.php',
         './packages/support/resources/**/*.blade.php',
         './packages/tables/resources/**/*.blade.php',
     ],
@@ -13,7 +14,7 @@ module.exports = {
         extend: {
             colors: {
                 danger: colors.rose,
-                primary: colors.yellow,
+                primary: colors.amber,
                 success: colors.green,
                 warning: colors.amber,
             },

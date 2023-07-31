@@ -10,10 +10,11 @@ use Filament\Forms\Components\Builder\Block;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 
-class Builder extends Field
+class Builder extends Field implements Contracts\CanConcealComponents
 {
     use Concerns\CanBeCollapsed;
     use Concerns\CanLimitItemsLength;
+    use Concerns\CanBeCloned;
 
     protected string $view = 'forms::components.builder';
 
@@ -22,6 +23,8 @@ class Builder extends Field
     protected string | Closure | null $createItemButtonLabel = null;
 
     protected bool | Closure $isItemMovementDisabled = false;
+
+    protected bool | Closure $isReorderableWithButtons = false;
 
     protected bool | Closure $isItemCreationDisabled = false;
 
@@ -40,9 +43,11 @@ class Builder extends Field
         $this->default([]);
 
         $this->afterStateHydrated(static function (Builder $component, ?array $state): void {
-            $items = collect($state ?? [])
-                ->mapWithKeys(static fn ($itemData) => [(string) Str::uuid() => $itemData])
-                ->toArray();
+            $items = [];
+
+            foreach ($state ?? [] as $itemData) {
+                $items[(string) Str::uuid()] = $itemData;
+            }
 
             $component->state($items);
         });
@@ -69,7 +74,7 @@ class Builder extends Field
                     if ($afterUuid) {
                         $newItems = [];
 
-                        foreach ($component->getState() as $uuid => $item) {
+                        foreach ($component->getState() ?? [] as $uuid => $item) {
                             $newItems[$uuid] = $item;
 
                             if ($uuid === $afterUuid) {
@@ -83,8 +88,6 @@ class Builder extends Field
                     }
 
                     $component->getChildComponentContainers()[$newUuid]->fill();
-
-                    $component->hydrateDefaultItemState($newUuid);
 
                     $component->collapsed(false, shouldMakeComponentCollapsible: false);
                 },
@@ -105,6 +108,24 @@ class Builder extends Field
 
                     $livewire = $component->getLivewire();
                     data_set($livewire, $statePath, $items);
+                },
+            ],
+            'builder::cloneItem' => [
+                function (Builder $component, string $statePath, string $uuidToDuplicate): void {
+                    if ($statePath !== $component->getStatePath()) {
+                        return;
+                    }
+
+                    $newUuid = (string) Str::uuid();
+
+                    $livewire = $component->getLivewire();
+                    data_set(
+                        $livewire,
+                        "{$statePath}.{$newUuid}",
+                        data_get($livewire, "{$statePath}.{$uuidToDuplicate}"),
+                    );
+
+                    $component->collapsed(false, shouldMakeComponentCollapsible: false);
                 },
             ],
             'builder::moveItemDown' => [
@@ -170,7 +191,7 @@ class Builder extends Field
         });
     }
 
-    public function blocks(array $blocks): static
+    public function blocks(array | Closure $blocks): static
     {
         $this->childComponents($blocks);
 
@@ -219,9 +240,11 @@ class Builder extends Field
         return $this;
     }
 
-    public function hydrateDefaultItemState(string $uuid): void
+    public function reorderableWithButtons(bool | Closure $condition = true): static
     {
-        $this->getChildComponentContainers()[$uuid]->hydrateDefaultState();
+        $this->isReorderableWithButtons = $condition;
+
+        return $this;
     }
 
     /**
@@ -269,11 +292,11 @@ class Builder extends Field
                 fn (array $itemData, $itemIndex): ComponentContainer => $this
                     ->getBlock($itemData['type'])
                     ->getChildComponentContainer()
-                    ->getClone()
                     ->statePath("{$itemIndex}.data")
-                    ->inlineLabel(false),
+                    ->inlineLabel(false)
+                    ->getClone(),
             )
-            ->toArray();
+            ->all();
     }
 
     public function getCreateItemBetweenButtonLabel(): string
@@ -289,6 +312,11 @@ class Builder extends Field
     public function hasBlock($name): bool
     {
         return (bool) $this->getBlock($name);
+    }
+
+    public function isReorderableWithButtons(): bool
+    {
+        return $this->evaluate($this->isReorderableWithButtons) && (! $this->isItemMovementDisabled());
     }
 
     public function isItemMovementDisabled(): bool
@@ -319,5 +347,10 @@ class Builder extends Field
     public function isInset(): bool
     {
         return (bool) $this->evaluate($this->isInset);
+    }
+
+    public function canConcealComponents(): bool
+    {
+        return $this->isCollapsible();
     }
 }

@@ -12,8 +12,8 @@ return [
 
             'fields' => [
 
-                'record_ids' => [
-                    'label' => 'Записи',
+                'record_id' => [
+                    'label' => 'Запис',
                 ],
 
             ],
@@ -25,7 +25,7 @@ return [
                 ],
 
                 'associate_another' => [
-                    'label' => 'Підключити та Підключити інше',
+                    'label' => 'Підключити та підключити інше',
                 ],
 
             ],

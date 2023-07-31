@@ -8,12 +8,24 @@ return [
 
         'buttons' => [
 
+            'clone_item' => [
+                'label' => 'Duplikat',
+            ],
+
             'create_item' => [
                 'label' => 'Tambahkan :label',
             ],
 
+            'create_item_between' => [
+                'label' => 'Sisipkan',
+            ],
+
             'delete_item' => [
                 'label' => 'Hapus',
+            ],
+
+            'move_item' => [
+                'label' => 'Pindahkan',
             ],
 
             'move_item_down' => [
@@ -25,19 +37,35 @@ return [
             ],
 
             'collapse_item' => [
-                'label' => 'Tampilkan lebih sedikit',
+                'label' => 'Sembunyikan',
             ],
 
             'expand_item' => [
-                'label' => 'Perluas',
+                'label' => 'Tampilkan',
             ],
 
             'collapse_all' => [
-                'label' => 'Tampilkan lebih sedikit',
+                'label' => 'Sembunyikan semua',
             ],
 
             'expand_all' => [
-                'label' => 'Perluas semuanya',
+                'label' => 'Tampilkan semua',
+            ],
+
+        ],
+
+    ],
+
+    'checkbox_list' => [
+
+        'buttons' => [
+
+            'deselect_all' => [
+                'label' => 'Batalkan semua pilihan',
+            ],
+
+            'select_all' => [
+                'label' => 'Pilih semua',
             ],
 
         ],
@@ -56,12 +84,16 @@ return [
                 'label' => 'Hapus baris',
             ],
 
+            'reorder' => [
+                'label' => 'Ubah urutan baris',
+            ],
+
         ],
 
         'fields' => [
 
             'key' => [
-                'label' => 'Kata kunci',
+                'label' => 'Kunci',
             ],
 
             'value' => [
@@ -76,13 +108,13 @@ return [
 
         'toolbar_buttons' => [
             'attach_files' => 'Lampirkan berkas',
-            'bold' => 'Cetak tebal',
+            'bold' => 'Tebal',
             'bullet_list' => 'Daftar',
             'code_block' => 'Kode',
-            'edit' => 'Edit',
-            'italic' => 'Cetak miring',
+            'edit' => 'Ubah',
+            'italic' => 'Miring',
             'link' => 'Tautan',
-            'ordered_list' => 'Daftar urut',
+            'ordered_list' => 'Daftar berurut',
             'preview' => 'Pratinjau',
             'strike' => 'Coret',
         ],
@@ -103,6 +135,14 @@ return [
                 'label' => 'Hapus',
             ],
 
+            'clone_item' => [
+                'label' => 'Duplikat',
+            ],
+
+            'move_item' => [
+                'label' => 'Pindahkan',
+            ],
+
             'move_item_down' => [
                 'label' => 'Turunkan',
             ],
@@ -112,19 +152,19 @@ return [
             ],
 
             'collapse_item' => [
-                'label' => 'Tampilkan lebih sedikit',
+                'label' => 'Sembunyikan',
             ],
 
             'expand_item' => [
-                'label' => 'Perluas',
+                'label' => 'Tampilkan',
             ],
 
             'collapse_all' => [
-                'label' => 'Tampilkan lebih sedikit',
+                'label' => 'Sembunyikan semua',
             ],
 
             'expand_all' => [
-                'label' => 'Perluas semuanya',
+                'label' => 'Tampilkan semua',
             ],
 
         ],
@@ -138,7 +178,7 @@ return [
             'link' => [
 
                 'buttons' => [
-                    'link' => 'Tautan',
+                    'link' => 'Buat tautan',
                     'unlink' => 'Batalkan tautan',
                 ],
 
@@ -152,19 +192,19 @@ return [
 
         'toolbar_buttons' => [
             'attach_files' => 'Lampirkan berkas',
-            'blockquote' => 'Quote',
-            'bold' => 'Bold',
+            'blockquote' => 'Kutipan',
+            'bold' => 'Tebal',
             'bullet_list' => 'Daftar',
             'code_block' => 'Kode',
             'h1' => 'Judul',
             'h2' => 'Sub judul',
             'h3' => 'Anak judul',
-            'italic' => 'Italic',
+            'italic' => 'Miring',
             'link' => 'Tautan',
-            'ordered_list' => 'Daftar urut',
-            'redo' => 'Redo',
+            'ordered_list' => 'Daftar berurut',
+            'redo' => 'Kembalikan',
             'strike' => 'Coret',
-            'undo' => 'Undo',
+            'undo' => 'Batalkan',
         ],
 
     ],
@@ -198,9 +238,11 @@ return [
             'false' => 'Tidak',
         ],
 
-        'loading_message' => 'Loading...',
+        'loading_message' => 'Memuat...',
 
-        'no_search_results_message' => 'Tidak ada data yang sesuai dengan pencarian anda.',
+        'max_items_message' => 'Hanya :count yang dapat dipilih.',
+
+        'no_search_results_message' => 'Tidak ada hasil yang sesuai dengan pencarian Anda.',
 
         'placeholder' => 'Pilih salah satu opsi',
 

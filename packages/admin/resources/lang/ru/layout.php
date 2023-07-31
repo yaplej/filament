@@ -2,22 +2,42 @@
 
 return [
 
-     'direction' => 'ltr',
+    'direction' => 'ltr',
 
-     'buttons' => [
+    'buttons' => [
 
-         'dark_mode' => [
-             'label' => 'Включить темный режим',
-         ],
+        'dark_mode' => [
+            'label' => 'Включить темный режим',
+        ],
 
-         'light_mode' => [
-             'label' => 'Включить светлый режим',
-         ],
+        'database_notifications' => [
+            'label' => 'Открыть уведомления',
+        ],
 
-         'logout' => [
-             'label' => 'Выйти',
-         ],
+        'light_mode' => [
+            'label' => 'Включить светлый режим',
+        ],
 
-     ],
+        'logout' => [
+            'label' => 'Выйти',
+        ],
+
+        'sidebar' => [
+
+            'collapse' => [
+                'label' => 'Свернуть боковую панель',
+            ],
+
+            'expand' => [
+                'label' => 'Раскрыть боковую панель',
+            ],
+
+        ],
+
+        'user_menu' => [
+            'label' => 'Меню пользователя',
+        ],
+
+    ],
 
 ];

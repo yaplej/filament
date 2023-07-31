@@ -3,6 +3,7 @@
 namespace Filament\Forms\Components\Concerns;
 
 use Closure;
+use Filament\Forms\Components\Component;
 use Filament\Forms\Contracts\HasForms;
 use Illuminate\Support\Arr;
 
@@ -19,16 +20,31 @@ trait CanBeHidden
         return $this;
     }
 
-    public function hiddenOn(string | array $livewireClass): static
+    public function hiddenOn(string | array $contexts): static
     {
-        $this->hidden(static function (HasForms $livewire) use ($livewireClass): bool {
-            foreach (Arr::wrap($livewireClass) as $class) {
-                if ($livewire instanceof $class) {
+        $this->hidden(static function (string $context, HasForms $livewire) use ($contexts): bool {
+            foreach (Arr::wrap($contexts) as $hiddenContext) {
+                if ($hiddenContext === $context || $livewire instanceof $hiddenContext) {
                     return true;
                 }
             }
 
             return false;
+        });
+
+        return $this;
+    }
+
+    public function hiddenWhenAllChildComponentsHidden(): static
+    {
+        $this->hidden(static function (Component $component): bool {
+            foreach ($component->getChildComponentContainers() as $childComponentContainer) {
+                foreach ($childComponentContainer->getComponents(withHidden: false) as $childComponent) {
+                    return false;
+                }
+            }
+
+            return true;
         });
 
         return $this;
@@ -64,7 +80,7 @@ trait CanBeHidden
 
         $this->hidden(static function (Closure $get) use ($paths): bool {
             foreach ($paths as $path) {
-                if (! ! $get($path)) {
+                if ((bool) $get($path)) {
                     return true;
                 }
             }
@@ -82,11 +98,11 @@ trait CanBeHidden
         return $this;
     }
 
-    public function visibleOn(string | array $livewireClass): static
+    public function visibleOn(string | array $contexts): static
     {
-        $this->visible(static function (HasForms $livewire) use ($livewireClass): bool {
-            foreach (Arr::wrap($livewireClass) as $class) {
-                if ($livewire instanceof $class) {
+        $this->visible(static function (string $context, HasForms $livewire) use ($contexts): bool {
+            foreach (Arr::wrap($contexts) as $visibleContext) {
+                if ($visibleContext === $context || $livewire instanceof $visibleContext) {
                     return true;
                 }
             }

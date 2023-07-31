@@ -15,14 +15,17 @@
 <x-filament::button
     :form="$getForm()"
     :type="$canSubmitForm() ? 'submit' : 'button'"
+    :tag="$action->getUrl() ? 'a' : 'button'"
     :wire:click="$wireClickAction"
-    :x-on:click="$canCancelAction() ? 'isOpen = false' : null"
+    :href="$action->isEnabled() ? $action->getUrl() : null"
+    :target="$action->shouldOpenUrlInNewTab() ? '_blank' : null"
+    :x-on:click="$canCancelAction() ? 'close()' : null"
     :color="$getColor()"
     :outlined="$isOutlined()"
     :icon="$getIcon()"
     :icon-position="$getIconPosition()"
     :size="$getSize()"
-    :attributes="$getExtraAttributeBag()"
+    :attributes="\Filament\Support\prepare_inherited_attributes($getExtraAttributeBag())"
     class="filament-page-modal-button-action"
 >
     {{ $getLabel() }}

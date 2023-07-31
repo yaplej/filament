@@ -2,10 +2,12 @@
 
 namespace Filament\Forms\Concerns;
 
+use Closure;
 use Filament\Forms\ComponentContainer;
 use Filament\Forms\Components\Actions\Action;
 use Filament\Forms\Components\Component;
-use Filament\Support\Actions\Exceptions\Hold;
+use Filament\Support\Exceptions\Cancel;
+use Filament\Support\Exceptions\Halt;
 
 /**
  * @property ComponentContainer $mountedFormComponentActionForm
@@ -13,6 +15,8 @@ use Filament\Support\Actions\Exceptions\Hold;
 trait HasFormComponentActions
 {
     public $mountedFormComponentAction = null;
+
+    public $mountedFormComponentActionArguments = [];
 
     public $mountedFormComponentActionData = [];
 
@@ -27,7 +31,7 @@ trait HasFormComponentActions
     {
         $action = $this->getMountedFormComponentAction();
 
-        if (! $action) {
+        if (! ($action instanceof Action)) {
             return null;
         }
 
@@ -38,7 +42,8 @@ trait HasFormComponentActions
         return $this->makeForm()
             ->schema($action->getFormSchema())
             ->model($this->getMountedFormComponentActionComponent()->getActionFormModel())
-            ->statePath('mountedFormComponentActionData');
+            ->statePath('mountedFormComponentActionData')
+            ->context($this->mountedFormComponentAction);
     }
 
     public function callMountedFormComponentAction(?string $arguments = null)
@@ -53,43 +58,53 @@ trait HasFormComponentActions
             return;
         }
 
-        $action->arguments($arguments ? json_decode($arguments, associative: true) : []);
+        $action->arguments(array_merge(
+            $this->mountedFormComponentActionArguments ?? [],
+            $arguments ? json_decode($arguments, associative: true) : [],
+        ));
 
         $form = $this->getMountedFormComponentActionForm();
 
-        if ($action->hasForm()) {
-            $action->callBeforeFormValidated();
-
-            $action->formData($form->getState());
-
-            $action->callAfterFormValidated();
-        }
-
-        $action->callBefore();
+        $result = null;
 
         try {
+            if ($action->hasForm()) {
+                $action->callBeforeFormValidated();
+
+                $action->formData($form->getState());
+
+                $action->callAfterFormValidated();
+            }
+
+            $action->callBefore();
+
             $result = $action->call([
                 'form' => $form,
             ]);
-        } catch (Hold $exception) {
+
+            $result = $action->callAfter() ?? $result;
+        } catch (Halt $exception) {
             return;
+        } catch (Cancel $exception) {
         }
 
-        try {
-            return $action->callAfter() ?? $result;
-        } finally {
-            $this->mountedFormComponentAction = null;
-
-            $action->resetArguments();
-            $action->resetFormData();
-
-            $this->dispatchBrowserEvent('close-modal', [
-                'id' => static::class . '-form-component-action',
-            ]);
+        if (filled($this->redirectTo)) {
+            return $result;
         }
+
+        $this->mountedFormComponentAction = null;
+
+        $action->resetArguments();
+        $action->resetFormData();
+
+        $this->dispatchBrowserEvent('close-modal', [
+            'id' => "{$this->id}-form-component-action",
+        ]);
+
+        return $result;
     }
 
-    public function getMountedFormComponentAction(): ?Action
+    public function getMountedFormComponentAction(): Action | Closure | null
     {
         if (! $this->mountedFormComponentAction) {
             return null;
@@ -98,10 +113,11 @@ trait HasFormComponentActions
         return $this->getMountedFormComponentActionComponent()?->getAction($this->mountedFormComponentAction);
     }
 
-    public function mountFormComponentAction(string $component, string $name)
+    public function mountFormComponentAction(string $component, string $name, array $arguments = [])
     {
         $this->mountedFormComponentActionComponent = $component;
         $this->mountedFormComponentAction = $name;
+        $this->mountedFormComponentActionArguments = $arguments;
 
         $action = $this->getMountedFormComponentAction();
 
@@ -109,26 +125,45 @@ trait HasFormComponentActions
             return;
         }
 
+        if ($action instanceof Closure) {
+            try {
+                return $this->getMountedFormComponentActionComponent()->evaluate($action);
+            } finally {
+                $this->mountedFormComponentActionComponent = null;
+                $this->mountedFormComponentAction = null;
+            }
+        }
+
         if ($action->isDisabled()) {
             return;
         }
+
+        $action->arguments($this->mountedFormComponentActionArguments);
 
         $this->cacheForm(
             'mountedFormComponentActionForm',
             fn () => $this->getMountedFormComponentActionForm(),
         );
 
-        if ($action->hasForm()) {
-            $action->callBeforeFormFilled();
-        }
+        try {
+            if ($action->hasForm()) {
+                $action->callBeforeFormFilled();
+            }
 
-        app()->call($action->getMountUsing(), [
-            'action' => $action,
-            'form' => $this->getMountedFormComponentActionForm(),
-        ]);
+            $action->mount([
+                'form' => $this->getMountedFormComponentActionForm(),
+            ]);
 
-        if ($action->hasForm()) {
-            $action->callAfterFormFilled();
+            if ($action->hasForm()) {
+                $action->callAfterFormFilled();
+            }
+        } catch (Halt $exception) {
+            return;
+        } catch (Cancel $exception) {
+            $this->mountedFormComponentActionComponent = null;
+            $this->mountedFormComponentAction = null;
+
+            return;
         }
 
         if (! $action->shouldOpenModal()) {
@@ -138,7 +173,7 @@ trait HasFormComponentActions
         $this->resetErrorBag();
 
         $this->dispatchBrowserEvent('open-modal', [
-            'id' => static::class . '-form-component-action',
+            'id' => "{$this->id}-form-component-action",
         ]);
     }
 

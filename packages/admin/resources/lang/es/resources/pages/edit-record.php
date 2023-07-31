@@ -15,9 +15,13 @@ return [
             ],
 
             'save' => [
-                'label' => 'Guardar',
+                'label' => 'Guardar cambios',
             ],
 
+        ],
+
+        'tab' => [
+            'label' => 'Editar',
         ],
 
     ],

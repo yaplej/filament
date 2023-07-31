@@ -1,5 +1,5 @@
 ---
-title: Getting Started
+title: Getting started
 ---
 
 ## Preparing your Livewire component
@@ -18,7 +18,7 @@ use Livewire\Component;
 class ListPosts extends Component implements Tables\Contracts\HasTable // [tl! focus]
 {
     use Tables\Concerns\InteractsWithTable; // [tl! focus]
-    
+
     public function render(): View
     {
         return view('list-posts');
@@ -50,12 +50,12 @@ use Livewire\Component;
 class ListPosts extends Component implements Tables\Contracts\HasTable
 {
     use Tables\Concerns\InteractsWithTable;
-    
+
     protected function getTableQuery(): Builder // [tl! focus:start]
     {
         return Post::query();
     } // [tl! focus:end]
-    
+
     public function render(): View
     {
         return view('list-posts');
@@ -80,18 +80,18 @@ use Livewire\Component;
 class ListPosts extends Component implements Tables\Contracts\HasTable
 {
     use Tables\Concerns\InteractsWithTable;
-    
+
     protected function getTableQuery(): Builder
     {
         return Post::query();
     }
-    
+
     protected function getTableColumns(): array // [tl! focus:start]
     {
         return [ // [tl! collapse:start]
             Tables\Columns\ImageColumn::make('author.avatar')
                 ->size(40)
-                ->rounded(),
+                ->circular(),
             Tables\Columns\TextColumn::make('title'),
             Tables\Columns\TextColumn::make('author.name'),
             Tables\Columns\BadgeColumn::make('status')
@@ -100,10 +100,10 @@ class ListPosts extends Component implements Tables\Contracts\HasTable
                     'warning' => 'reviewing',
                     'success' => 'published',
                 ]),
-            Tables\Columns\BooleanColumn::make('is_featured'),
+            Tables\Columns\IconColumn::make('is_featured')->boolean(),
         ]; // [tl! collapse:end]
     }
-    
+
     protected function getTableFilters(): array
     {
         return [ // [tl! collapse:start]
@@ -117,7 +117,7 @@ class ListPosts extends Component implements Tables\Contracts\HasTable
                 ]),
         ]; // [tl! collapse:end]
     }
-    
+
     protected function getTableActions(): array
     {
         return [ // [tl! collapse:start]
@@ -125,7 +125,7 @@ class ListPosts extends Component implements Tables\Contracts\HasTable
                 ->url(fn (Post $record): string => route('posts.edit', $record)),
         ]; // [tl! collapse:end]
     }
-    
+
     protected function getTableBulkActions(): array
     {
         return [ // [tl! collapse:start]
@@ -138,7 +138,7 @@ class ListPosts extends Component implements Tables\Contracts\HasTable
                 ->requiresConfirmation(),
         ]; // [tl! collapse:end]
     } // [tl! focus:end]
-    
+
     public function render(): View
     {
         return view('list-posts');
@@ -166,12 +166,12 @@ use Livewire\Component;
 class ListPosts extends Component implements Tables\Contracts\HasTable
 {
     use Tables\Concerns\InteractsWithTable;
-    
+
     protected function getTableQuery(): Builder
     {
         return Post::query();
     }
-    
+
     protected function getTableColumns(): array
     {
         return [
@@ -179,12 +179,12 @@ class ListPosts extends Component implements Tables\Contracts\HasTable
             Tables\Columns\TextColumn::make('author.name'),
         ];
     }
-    
+
     protected function isTablePaginationEnabled(): bool // [tl! focus:start]
     {
         return false;
     } // [tl! focus:end]
-    
+
     public function render(): View
     {
         return view('list-posts');
@@ -208,12 +208,12 @@ use Livewire\Component;
 class ListPosts extends Component implements Tables\Contracts\HasTable
 {
     use Tables\Concerns\InteractsWithTable;
-    
+
     protected function getTableQuery(): Builder
     {
         return Post::query();
     }
-    
+
     protected function getTableColumns(): array
     {
         return [
@@ -221,12 +221,12 @@ class ListPosts extends Component implements Tables\Contracts\HasTable
             Tables\Columns\TextColumn::make('author.name'),
         ];
     }
-    
+
     protected function getTableRecordsPerPageSelectOptions(): array // [tl! focus:start]
     {
         return [10, 25, 50, 100];
     } // [tl! focus:end]
-    
+
     public function render(): View
     {
         return view('list-posts');
@@ -255,7 +255,7 @@ use Illuminate\Database\Eloquent\Builder;
 
 protected function paginateTableQuery(Builder $query): Paginator
 {
-    return $query->simplePaginate($this->getTableRecordsPerPage());
+    return $query->simplePaginate($this->getTableRecordsPerPage() == -1 ? $query->count() : $this->getTableRecordsPerPage());
 }
 ```
 
@@ -290,7 +290,9 @@ protected function applySearchToTableQuery(Builder $query): Builder
 
 Scout uses this `whereIn()` method to retrieve results internally, so there is no performance penalty for using it.
 
-## Record URLs (clickable rows)
+## Clickable rows
+
+### Record URLs
 
 You may allow table rows to be completely clickable by overriding the `getTableRecordUrlUsing()` method on your Livewire component:
 
@@ -298,7 +300,7 @@ You may allow table rows to be completely clickable by overriding the `getTableR
 use Closure;
 use Illuminate\Database\Eloquent\Model;
 
-protected function getTableRecordUrlUsing(): Closure
+protected function getTableRecordUrlUsing(): ?Closure
 {
     return fn (Model $record): string => route('posts.edit', ['record' => $record]);
 }
@@ -306,7 +308,81 @@ protected function getTableRecordUrlUsing(): Closure
 
 In this example, clicking on each post will take you to the `posts.edit` route.
 
-If you'd like to [override the URL](columns#opening-urls) for a specific column, or instead [run a Livewire action](columns#running-actions) when a column is clicked, see the [columns documentation](columns#opening-urls).
+If you'd like to [override the URL](columns/getting-started#opening-urls) for a specific column, or instead [run a Livewire action](columns#running-actions) when a column is clicked, see the [columns documentation](columns#opening-urls).
+
+### Record actions
+
+Alternatively, you may configure table rows to trigger an action instead of opening a URL:
+
+```php
+use Closure;
+use Filament\Tables\Actions\Action;
+use Filament\Tables\Actions\DeleteAction;
+
+protected function getTableRecordActionUsing(): ?Closure
+{
+    return fn (): string => 'edit';
+}
+```
+
+In this case, if an `EditAction` or another action with the name `edit` exists on the table row, that will be called. If not, a Livewire public method with the name `edit()` will be called, and the selected record will be passed.
+
+### Disabling clickable rows
+
+If you'd like to completely disable the click action for the entire row, you may override the `getTableRecordActionUsing()` method on your Livewire component, and return `null`:
+
+```php
+use Closure;
+
+protected function getTableRecordActionUsing(): ?Closure
+{
+    return null;
+}
+```
+
+## Record classes
+
+You may want to conditionally style rows based on the record data. This can be achieved by specifying a string or array of CSS classes to be applied to the row using the `getTableRecordClassesUsing()` method:
+
+```php
+use Closure;
+use Illuminate\Database\Eloquent\Model;
+
+protected function getTableRecordClassesUsing(): ?Closure
+{
+    return fn (Model $record) => match ($record->status) {
+        'draft' => 'opacity-30',
+        'reviewing' => [
+            'border-l-2 border-orange-600',
+            'dark:border-orange-300' => config('tables.dark_mode'),
+        ],
+        'published' => 'border-l-2 border-green-600',
+        default => null,
+    };
+}
+```
+
+These classes are not automatically compiled by Tailwind CSS. If you want to apply Tailwind CSS classes that are not already used in Blade files, you should update your `content` configuration in `tailwind.config.js` to also scan for classes in your desired PHP files:
+
+```js
+export default {
+    content: ['./app/Filament/**/*.php'],
+}
+```
+
+Alternatively, you may add the classes to your [safelist](https://tailwindcss.com/docs/content-configuration#safelisting-classes):
+
+```js
+export default {
+    safelist: [
+        'border-green-600',
+        'border-l-2',
+        'border-orange-600',
+        'dark:border-orange-300',
+        'opacity-30',
+    ],
+}
+```
 
 ## Empty state
 
@@ -327,18 +403,18 @@ use Livewire\Component;
 class ListPosts extends Component implements Tables\Contracts\HasTable
 {
     use Tables\Concerns\InteractsWithTable;
-    
+
     protected function getTableQuery(): Builder
     {
         return Post::query();
     }
-    
+
     protected function getTableColumns(): array
     {
         return [ // [tl! collapse:start]
             Tables\Columns\ImageColumn::make('author.avatar')
                 ->size(40)
-                ->rounded(),
+                ->circular(),
             Tables\Columns\TextColumn::make('title'),
             Tables\Columns\TextColumn::make('author.name'),
             Tables\Columns\BadgeColumn::make('status')
@@ -347,25 +423,25 @@ class ListPosts extends Component implements Tables\Contracts\HasTable
                     'warning' => 'reviewing',
                     'success' => 'published',
                 ]),
-            Tables\Columns\BooleanColumn::make('is_featured'),
+            Tables\Columns\IconColumn::make('is_featured')->boolean(),
         ]; // [tl! collapse:end]
     }
-    
+
     protected function getTableEmptyStateIcon(): ?string // [tl! focus:start]
     {
         return 'heroicon-o-bookmark';
     }
-    
+
     protected function getTableEmptyStateHeading(): ?string
     {
         return 'No posts yet';
     }
-    
+
     protected function getTableEmptyStateDescription(): ?string
     {
         return 'You may create a post using the button below.';
     }
-    
+
     protected function getTableEmptyStateActions(): array
     {
         return [
@@ -376,7 +452,7 @@ class ListPosts extends Component implements Tables\Contracts\HasTable
                 ->button(),
         ];
     } // [tl! focus:end]
-    
+
     public function render(): View
     {
         return view('list-posts');
@@ -398,7 +474,52 @@ protected $queryString = [
     'tableSortColumn',
     'tableSortDirection',
     'tableSearchQuery' => ['except' => ''],
+    'tableColumnSearchQueries',
 ];
+```
+
+## Reordering records
+
+To allow the user to reorder records using drag and drop in your table, you can use the `getTableReorderColumn()` method:
+
+```php
+protected function getTableReorderColumn(): ?string
+{
+    return 'sort';
+}
+```
+
+When making the table reorderable, a new button will be available on the table to toggle reordering.
+
+The `getTableReorderColumn()` method returns the name of a column to store the record order in. If you use something like [`spatie/eloquent-sortable`](https://github.com/spatie/eloquent-sortable) with an order column such as `order_column`, you may return this instead:
+
+```php
+protected function getTableReorderColumn(): ?string
+{
+    return 'order_column';
+}
+```
+
+### Enabling pagination while reordering
+
+Pagination will be disabled in reorder mode to allow you to move records between pages. It is generally bad UX to re-enable pagination while reordering, but if you are sure then you can use:
+
+```php
+protected function isTablePaginationEnabledWhileReordering(): bool
+{
+    return true;
+}
+```
+
+## Polling content
+
+You may poll table content so that it refreshes at a set interval, using the `getTablePollingInterval()` method:
+
+```php
+protected function getTablePollingInterval(): ?string
+{
+    return '10s';
+}
 ```
 
 ## Using the form builder
@@ -422,30 +543,30 @@ use Livewire\Component;
 class ListPosts extends Component implements Tables\Contracts\HasTable
 {
     use Tables\Concerns\InteractsWithTable;
-    
+
     public function mount(): void
     {
         $this->form->fill();
     }
-    
+
     protected function getFormSchema(): array
     {
         return [
             // ...
         ];
     }
-    
+
     protected function getTableQuery(): Builder // [tl! collapse:start]
     {
         return Post::query();
     }
-    
+
     protected function getTableColumns(): array
     {
         return [
             Tables\Columns\ImageColumn::make('author.avatar')
                 ->size(40)
-                ->rounded(),
+                ->circular(),
             Tables\Columns\TextColumn::make('title'),
             Tables\Columns\TextColumn::make('author.name'),
             Tables\Columns\BadgeColumn::make('status')
@@ -454,10 +575,10 @@ class ListPosts extends Component implements Tables\Contracts\HasTable
                     'warning' => 'reviewing',
                     'success' => 'published',
                 ]),
-            Tables\Columns\BooleanColumn::make('is_featured'),
+            Tables\Columns\IconColumn::make('is_featured')->boolean(),
         ];
     } // [tl! collapse:end]
-    
+
     public function render(): View
     {
         return view('list-posts');

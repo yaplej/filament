@@ -2,6 +2,7 @@
 
 namespace Filament\Resources\RelationManagers\Concerns;
 
+use Filament\Notifications\Notification;
 use Filament\Tables;
 use Illuminate\Database\Eloquent\Model;
 
@@ -19,12 +20,15 @@ trait CanDeleteRecords
         $this->callHook('afterDelete');
 
         if (filled($this->getDeletedNotificationMessage())) {
-            $this->notify('success', $this->getDeletedNotificationMessage());
+            Notification::make()
+                ->title($this->getDeletedNotificationMessage())
+                ->success()
+                ->send();
         }
     }
 
     /**
-     * @deprecated Use `->successNotificationMessage()` on the action instead.
+     * @deprecated Use `->successNotificationTitle()` on the action instead.
      */
     protected function getDeletedNotificationMessage(): ?string
     {
@@ -43,12 +47,15 @@ trait CanDeleteRecords
         $this->callHook('afterBulkDelete');
 
         if (filled($this->getBulkDeletedNotificationMessage())) {
-            $this->notify('success', $this->getBulkDeletedNotificationMessage());
+            Notification::make()
+                ->title($this->getBulkDeletedNotificationMessage())
+                ->success()
+                ->send();
         }
     }
 
     /**
-     * @deprecated Use `->successNotificationMessage()` on the action instead.
+     * @deprecated Use `->successNotificationTitle()` on the action instead.
      */
     protected function getBulkDeletedNotificationMessage(): ?string
     {

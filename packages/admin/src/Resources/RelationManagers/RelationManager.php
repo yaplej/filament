@@ -2,13 +2,15 @@
 
 namespace Filament\Resources\RelationManagers;
 
+use Closure;
 use Filament\Facades\Filament;
 use Filament\Http\Livewire\Concerns\CanNotify;
-use function Filament\locale_has_pluralization;
 use Filament\Resources\Form;
 use Filament\Resources\Table;
+use function Filament\Support\locale_has_pluralization;
 use Filament\Tables;
 use Filament\Tables\Actions\BulkAction;
+use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -24,7 +26,7 @@ class RelationManager extends Component implements Tables\Contracts\HasRelations
 
     public Model $ownerRecord;
 
-    public string $pageClass;
+    public ?string $pageClass = null;
 
     protected static ?string $recordTitleAttribute = null;
 
@@ -49,6 +51,10 @@ class RelationManager extends Component implements Tables\Contracts\HasRelations
     protected static ?string $pluralModelLabel = null;
 
     protected static ?string $title = null;
+
+    protected static bool $shouldAuthorizeWithGate = false;
+
+    protected static bool $shouldIgnorePolicies = false;
 
     protected function getTableQueryStringIdentifier(): ?string
     {
@@ -229,27 +235,71 @@ class RelationManager extends Component implements Tables\Contracts\HasRelations
 
     protected function can(string $action, ?Model $record = null): bool
     {
-        $policy = Gate::getPolicyFor($model = $this->getRelatedModel());
+        $user = Filament::auth()->user();
+        $model = $this->getRelatedModel();
 
-        if ($policy === null || (! method_exists($policy, $action))) {
+        if (static::shouldAuthorizeWithGate()) {
+            return Gate::forUser($user)->check($action, $record ?? $model);
+        }
+
+        if (static::shouldIgnorePolicies()) {
             return true;
         }
 
-        return Gate::forUser(Filament::auth()->user())->check($action, $record ?? $model);
+        $policy = Gate::getPolicyFor($model);
+
+        if ($policy === null) {
+            return true;
+        }
+
+        if (! method_exists($policy, $action)) {
+            return true;
+        }
+
+        return Gate::forUser($user)->check($action, $record ?? $model);
+    }
+
+    public static function authorizeWithGate(bool $condition = true): void
+    {
+        static::$shouldAuthorizeWithGate = $condition;
+    }
+
+    public static function ignorePolicies(bool $condition = true): void
+    {
+        static::$shouldIgnorePolicies = $condition;
+    }
+
+    public static function shouldAuthorizeWithGate(): bool
+    {
+        return static::$shouldAuthorizeWithGate;
+    }
+
+    public static function shouldIgnorePolicies(): bool
+    {
+        return static::$shouldIgnorePolicies;
     }
 
     public static function canViewForRecord(Model $ownerRecord): bool
     {
-        $model = $ownerRecord->{static::getRelationshipName()}()->getQuery()->getModel()::class;
-
-        $policy = Gate::getPolicyFor($model);
-        $action = 'viewAny';
-
-        if ($policy === null || (! method_exists($policy, $action))) {
+        if (static::shouldIgnorePolicies()) {
             return true;
         }
 
-        return Gate::forUser(Filament::auth()->user())->check($action, $model);
+        $model = $ownerRecord->{static::getRelationshipName()}()->getQuery()->getModel()::class;
+
+        $policy = Gate::getPolicyFor($model);
+        $user = Filament::auth()->user();
+        $action = 'viewAny';
+
+        if ($policy === null) {
+            return true;
+        }
+
+        if (! method_exists($policy, $action)) {
+            return true;
+        }
+
+        return Gate::forUser($user)->check($action, $model);
     }
 
     public static function form(Form $form): Form
@@ -388,6 +438,16 @@ class RelationManager extends Component implements Tables\Contracts\HasRelations
         return $this->getResourceTable()->getActions();
     }
 
+    public function getTableRecordCheckboxPosition(): string
+    {
+        return $this->getResourceTable()->getRecordCheckboxPosition() ?? Tables\Actions\RecordCheckboxPosition::BeforeCells;
+    }
+
+    protected function getTableActionsPosition(): ?string
+    {
+        return $this->getResourceTable()->getActionsPosition();
+    }
+
     protected function getTableBulkActions(): array
     {
         return $this->getResourceTable()->getBulkActions();
@@ -398,9 +458,19 @@ class RelationManager extends Component implements Tables\Contracts\HasRelations
         return $this->getResourceTable()->getColumns();
     }
 
+    protected function getTableContentGrid(): ?array
+    {
+        return $this->getResourceTable()->getContentGrid();
+    }
+
     protected function getTableFilters(): array
     {
         return $this->getResourceTable()->getFilters();
+    }
+
+    protected function getTableFiltersLayout(): ?string
+    {
+        return $this->getResourceTable()->getFiltersLayout();
     }
 
     protected function getTableHeaderActions(): array
@@ -408,7 +478,22 @@ class RelationManager extends Component implements Tables\Contracts\HasRelations
         return $this->getResourceTable()->getHeaderActions();
     }
 
-    protected function getTableHeading(): ?string
+    protected function getTableReorderColumn(): ?string
+    {
+        return $this->getResourceTable()->getReorderColumn();
+    }
+
+    protected function isTableReorderable(): bool
+    {
+        return filled($this->getTableReorderColumn()) && $this->canReorder();
+    }
+
+    protected function getTablePollingInterval(): ?string
+    {
+        return $this->getResourceTable()->getPollingInterval();
+    }
+
+    protected function getTableHeading(): string | Htmlable | Closure | null
     {
         return static::getTitle();
     }
@@ -478,6 +563,11 @@ class RelationManager extends Component implements Tables\Contracts\HasRelations
         return $this->can('forceDeleteAny');
     }
 
+    protected function canReorder(): bool
+    {
+        return $this->can('reorder');
+    }
+
     protected function canReplicate(Model $record): bool
     {
         return $this->can('replicate', $record);
@@ -501,5 +591,61 @@ class RelationManager extends Component implements Tables\Contracts\HasRelations
     protected function getViewData(): array
     {
         return [];
+    }
+
+    protected function getTableRecordUrlUsing(): ?Closure
+    {
+        return function (Model $record): ?string {
+            foreach (['view', 'edit'] as $action) {
+                $action = $this->getCachedTableAction($action);
+
+                if (! $action) {
+                    continue;
+                }
+
+                $action->record($record);
+
+                if ($action->isHidden()) {
+                    continue;
+                }
+
+                $url = $action->getUrl();
+
+                if (! $url) {
+                    continue;
+                }
+
+                return $url;
+            }
+
+            return null;
+        };
+    }
+
+    protected function getTableRecordActionUsing(): ?Closure
+    {
+        return function (Model $record): ?string {
+            foreach (['view', 'edit'] as $action) {
+                $action = $this->getCachedTableAction($action);
+
+                if (! $action) {
+                    continue;
+                }
+
+                $action->record($record);
+
+                if ($action->isHidden()) {
+                    continue;
+                }
+
+                if ($action->getUrl()) {
+                    continue;
+                }
+
+                return $action->getName();
+            }
+
+            return null;
+        };
     }
 }

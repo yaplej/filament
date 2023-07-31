@@ -7,9 +7,9 @@ use Filament\FilamentManager;
 use Filament\GlobalSearch\Contracts\GlobalSearchProvider;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Auth\StatefulGuard;
+use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Facade;
-use Illuminate\Support\HtmlString;
 
 /**
  * @method static StatefulGuard auth()
@@ -24,12 +24,13 @@ use Illuminate\Support\HtmlString;
  * @method static array getScripts()
  * @method static array getScriptData()
  * @method static array getStyles()
- * @method static string getThemeUrl()
+ * @method static Htmlable getThemeLink()
  * @method static string | null getUrl()
- * @method static string | null getUserAvatarUrl(Authenticatable $user)
+ * @method static string | null getUserAvatarUrl(Model | Authenticatable $user)
  * @method static array getUserMenuItems()
- * @method static string getUserName(Authenticatable $user)
+ * @method static string getUserName(Model | Authenticatable $user)
  * @method static array getWidgets()
+ * @method static bool isServing()
  * @method static void globalSearchProvider(string $provider)
  * @method static void navigation(\Closure $builder)
  * @method static void notify(string $status, string $message, bool $isAfterRedirect = false)
@@ -41,11 +42,13 @@ use Illuminate\Support\HtmlString;
  * @method static void registerScripts(array $scripts, bool $shouldBeLoadedBeforeCoreScripts = false)
  * @method static void registerScriptData(array $data)
  * @method static void registerStyles(array $styles)
- * @method static void registerTheme(string $url)
+ * @method static void registerTheme(string | Htmlable | null $theme)
+ * @method static void registerViteTheme(string | array $theme, string | null $buildDirectory = null)
  * @method static void registerUserMenuItems(array $items)
  * @method static void registerWidgets(array $widgets)
- * @method static HtmlString renderHook(string $name)
+ * @method static Htmlable renderHook(string $name)
  * @method static void serving(Closure $callback)
+ * @method static void setServingStatus(bool $condition = true)
  *
  * @see FilamentManager
  */

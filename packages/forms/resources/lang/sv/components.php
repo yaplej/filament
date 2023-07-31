@@ -8,12 +8,24 @@ return [
 
         'buttons' => [
 
+            'clone_item' => [
+                'label' => 'Klona',
+            ],
+
             'create_item' => [
                 'label' => 'Lägg till i :label',
             ],
 
+            'create_item_between' => [
+                'label' => 'Infoga',
+            ],
+
             'delete_item' => [
                 'label' => 'Radera',
+            ],
+
+            'move_item' => [
+                'label' => 'Flytta',
             ],
 
             'move_item_down' => [
@@ -44,6 +56,22 @@ return [
 
     ],
 
+    'checkbox_list' => [
+
+        'buttons' => [
+
+            'deselect_all' => [
+                'label' => 'Avmarkera alla',
+            ],
+
+            'select_all' => [
+                'label' => 'Markera alla',
+            ],
+
+        ],
+
+    ],
+
     'key_value' => [
 
         'buttons' => [
@@ -54,6 +82,10 @@ return [
 
             'delete' => [
                 'label' => 'Ta bort rad',
+            ],
+
+            'reorder' => [
+                'label' => 'Ändra ordning på rad',
             ],
 
         ],
@@ -101,6 +133,14 @@ return [
 
             'delete_item' => [
                 'label' => 'Radera',
+            ],
+
+            'clone_item' => [
+                'label' => 'Klona',
+            ],
+
+            'move_item' => [
+                'label' => 'Flytta',
             ],
 
             'move_item_down' => [
@@ -200,6 +240,8 @@ return [
 
         'loading_message' => 'Laddar...',
 
+        'max_items_message' => 'Kan endast välja :count st.',
+
         'no_search_results_message' => 'Inga alternativ matchar din sökning.',
 
         'placeholder' => 'Välj ett alternativ',
@@ -219,7 +261,7 @@ return [
         'buttons' => [
 
             'previous_step' => [
-                'label' => 'Tillbaka',
+                'label' => 'Föregående',
             ],
 
             'next_step' => [
